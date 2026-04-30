@@ -10,7 +10,7 @@ This repository provides a simple pipeline for estimating valence and arousal (V
 
 ## Quick Start Guide
 ### Installation
-Download BEATs feature extractor [pretraind weight](https://www.kaggle.com/datasets/hubfor/microsoft-beats-model) and place in the [model_state](./model_state/) folder.
+Download BEATs feature extractor [pretraind weight](https://drive.google.com/file/d/1FZ8rbTYx_ix2VswOe4nyJC32vzZdmFDT/view?usp=sharing) and place in the [model_state](./model_state/) folder.
 This repo is debveloped using python version 3.8
 ```bash
 git clone https://github.com/DCN2001/VA-SEQ.git
