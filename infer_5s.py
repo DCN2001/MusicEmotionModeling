@@ -6,16 +6,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 import torch
-from tqdm import tqdm
 
 #---------------------------------------------------------------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--audio_path", type=str, default="./test/music/golden hour.mp3", help="The path of target audio.")
+    parser.add_argument("--audio_path", type=str, default="music.mp3", help="The path of target audio.")
     parser.add_argument("--ckpt_BEATs_path", type=str, default="./model_state/BEATs.pt", help="The path of model weight.")
-    parser.add_argument("--ckpt_path1", type=str, default="./model_state/Full_Mix.pth", help="The path of model weight.")
-    parser.add_argument("--ckpt_path2", type=str, default="./model_state/Full_CH.pth", help="The path of model weight.")
-    parser.add_argument("--output_path", type=str, default="./test/plot/golden hour.png", help="The path of plot.")
+    parser.add_argument("--ckpt_path1", type=str, default="./model_state/Full_1.pth", help="The path of model weight 1.")
+    parser.add_argument("--ckpt_path2", type=str, default="./model_state/Full_2.pth", help="The path of model weight 2(CH).")
+    parser.add_argument("--output_path", type=str, default="result.png", help="The path of plot.")
     args = parser.parse_args()
 
     ## Model setup
@@ -64,17 +63,14 @@ if __name__ == "__main__":
         valence_list.append(valence_seg)
         arousal_list.append(arousal_seg)
 
-        # ✔ 用 segment 中心當時間
         center_time = (start + end) / 2 / sr
         time_list.append(center_time)
-
         start += stride_samples
+
 
     ## Plot
     duration_sec = total_samples / sr
-
     plt.figure(figsize=(10,4))
-
     plt.plot(time_list, valence_list, marker="o", label="Valence")
     plt.plot(time_list, arousal_list, marker="s", label="Arousal")
 
@@ -85,9 +81,7 @@ if __name__ == "__main__":
     plt.xlabel("Time (seconds)")
     plt.ylabel("Value")
     plt.title("Valence & Arousal over Time")
-
     plt.legend()
     plt.grid(True)
-
     plt.tight_layout()
     plt.savefig(args.output_path, dpi=300)
