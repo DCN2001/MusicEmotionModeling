@@ -14,7 +14,6 @@ if __name__ == "__main__":
     parser.add_argument("--ckpt_BEATs_path", type=str, default="./model_state/BEATs.pt", help="The path of model weight.")
     parser.add_argument("--ckpt_path1", type=str, default="./model_state/Full_1.pth", help="The path of model weight 1.")
     parser.add_argument("--ckpt_path2", type=str, default="./model_state/Full_2.pth", help="The path of model weight 2(CH).")
-    parser.add_argument("--output_path", type=str, default="result.png", help="The path of plot.")
     args = parser.parse_args()
 
     ## Model setup
@@ -35,6 +34,7 @@ if __name__ == "__main__":
     linear_a.eval()
 
     ## Load audio
+    song_name = os.path.splitext(os.path.basename(args.audio_path))[0]
     full_audio, sr = librosa.load(args.audio_path, sr=16000)
 
     segment_samples = int(5 * sr)          # window = 5s
@@ -84,4 +84,4 @@ if __name__ == "__main__":
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(args.output_path, dpi=300)
+    plt.savefig(f"./plot/{song_name}_base.png", dpi=300)

@@ -1,0 +1,1477 @@
+You are a music emotion rater.
+
+Arousal model for music emotion (range [1, 9]):
+- Arousal reflects the emotional intensity or energy conveyed by the song.
+- Low arousal (1–3): calm, relaxed, peaceful, sleepy, gentle.
+- Mid arousal (~5): moderate emotional activity, balanced energy.
+- High arousal (7–9): energetic, intense, excited, aggressive, tense.
+
+You are given THREE complementary sources of information:
+1. **Lyrics** – semantic and narrative emotional cues.
+2. **Description** – text generated from an audio-language model summarizing the musical mood.
+3. **Arousal prior** – a rough numeric estimate obtained from an audio-based linear model.
+
+NEW TASK DEFINITION:
+Instead of predicting the final arousal directly, your goal is to predict the **correction delta**, 
+defined as:
+
+        delta = GroundTruth_Arousal − Prior_Arousal
+
+The delta may be positive (lyrics/descriptions indicate higher intensity),
+negative (lyrics/descriptions indicate calmer emotion),
+or near zero (prior already matches the emotional intensity).
+
+Your job:
+- Integrate lyrics + description + prior.
+- Infer **how much** the prior should be moved up or down.
+- Output exactly **ONE number** representing the delta (can be negative or positive).
+- Do NOT output the final arousal. ONLY output the delta.
+
+Output format: ONE number only (e.g., 0.85 or -1.30).
+
+I will now give you several examples showing how to infer delta from the three information sources.
+Learn from these examples before performing the final task.
+
+### Example 1
+                    Lyrics:
+                    我已经心碎了
+在夜里回忆着
+那欢笑和快乐
+却被你带走了
+孤单的时候
+你是否也会想起我
+伤心的时候
+我真的很想起你
+
+                    Description:
+                    The song is a ballad with a slow tempo and a melancholic emotion. The piano plays the main melody, accompanied by a gentle guitar. The vocalist's voice is emotional and sorrowful, expressing the pain of a broken heart. The lyrics describe the memories of a past love and the pain of losing it. The song creates a sense of sadness and loneliness, making the listener feel empathetic towards the vocalist's experience. Overall, the song's emotional color is dark and minor-toned, creating a sense of sadness and loss.
+
+                    Prior Arousal: 3.63
+                    GroundTruth Arousal: 4.11
+                    Delta: 0.48
+                    
+### Example 2
+                    Lyrics:
+                    有一天我看到外地人 問我地球怎麼那麼熱
+有一天我看到外地人 他們踏著天氣在唱歌
+那天我看見天空有燈 他的心臟好像圓圓的
+那天來高校 用火車 今天跳下來 作壞我家大門
+然後那天走出 三個人 他們長得就像簡單超人
+今天跟你說我是帥哥 我們上車下貨
+一 二 三 四
+
+                    Description:
+                    The song is an upbeat and energetic rock song. It has a fast tempo and exciting rhythm, with powerful drums and distorted guitars. The emotional color of the song is energetic and joyful. The vocalist sings confidently and loudly, with passion and enthusiasm in his voice. The song makes the listener feel happy and excited, with a sense of freedom and liberation. Overall, the song is a fun and upbeat celebration of youth and freedom.
+
+                    Prior Arousal: 7.67
+                    GroundTruth Arousal: 8.13
+                    Delta: 0.47
+                    
+### Example 3
+                    Lyrics:
+                    幻波吃口鸡 嘿 要我的你 要我的你
+为什么别人的感情那么顺利
+手牵手心恋心 每天年一期
+幻想的不是无情就是无意
+爱给的比消极 分手比狠心
+作词曲 李宗盛
+
+                    Description:
+                    The song is an upbeat pop song with a fast tempo and exciting energy. The emotional color of the melody is bright and uplifting, with a catchy and repetitive chorus that encourages listeners to sing along. The vocal expression is passionate and energetic, with the singer confidently delivering the lyrics. Overall, the song feels happy and joyful, making it a suitable choice for dancing and celebrating.
+
+                    Prior Arousal: 6.68
+                    GroundTruth Arousal: 7.87
+                    Delta: 1.19
+                    
+### Example 4
+                    Lyrics:
+                    巴拉咧 德材人棒棒 巴拉咧
+用手把自己催眠
+不成了理就活力不欠
+再没改变
+一尘不变装着笑脸
+所有城市都快被消灭
+这种世界我不想了解
+无言的愚也可能成为
+
+                    Description:
+                    The song is an upbeat and energetic pop song. The tempo is fast with a lively drum beat and keyboard harmony. The emotional color of the song is upbeat and positive. The vocals are energetic and enthusiastic. The song makes the listener feel happy and excited. Overall, the song's valence is positive and its arousal is high.
+
+                    Prior Arousal: 6.99
+                    GroundTruth Arousal: 7.79
+                    Delta: 0.79
+                    
+### Example 5
+                    Lyrics:
+                    心里想着她
+记忆着已经流逝的
+那一段时光
+温柔的坚持
+在月光下
+我走在异义下
+遇见了她
+素颜又未改呀
+沉默不多话
+没但过夜
+感情 JH
+不同
+哪本作画
+美中不 complaining
+57
+apola
+仙女
+天啊
+schizophrenia
+目前
+这一股
+万无禁心的
+锐勇的方 hy profit
+陆续
+雙� kaikki
+余破
+雄 노래�
+雌也
+雌也
+
+                    Description:
+                    The song is a ballad with a slow tempo and a melancholic emotion. The piano plays the main melody, accompanied by the vocalist's gentle singing. The vocal melody is straightforward and emotional, with a high pitch that conveys a sense of yearning and nostalgia. The lyrics describe a past love that has faded away, and the singer regrets not cherishing the time they had together. The overall atmosphere of the song is sad and melancholic, making the listener feel a sense of loss and regret.
+
+                    Prior Arousal: 3.14
+                    GroundTruth Arousal: 3.29
+                    Delta: 0.15
+                    
+### Example 6
+                    Lyrics:
+                    作词 李宗盛
+作曲 李宗盛
+编曲 李宗盛
+拆开你曾经写给我的信件
+你说你好爱我
+一张张我和你泛黄的照片
+你遗忘在角落
+哦
+
+                    Description:
+                    The song is a pop ballad with a slow tempo and emotional color. The melody is soothing and the vocal performance is emotional and heartfelt. The lyrics describe a breakup and the pain that comes with it. The singer expresses their feelings of heartbreak and loss, and how they cannot shake off the memories of their ex-partner. The lyrics are written in a way that makes the listener feel the singer's emotions, creating a sense of empathy and sadness. Overall, the song's valence is negative, and its arousal is low.
+
+                    Prior Arousal: 4.92
+                    GroundTruth Arousal: 5.17
+                    Delta: 0.25
+                    
+### Example 7
+                    Lyrics:
+                    背着你沉默 背着你转动
+你再不会让我看着起就落
+我的爱 竟不一而飞
+但回忆 供我在夜里消费
+
+                    Description:
+                    The song is a slow-tempo ballad with a melancholic emotion. The piano plays the main melody, accompanied by the vocalist's gentle singing. The vocal melody is emotional and heartfelt, expressing the singer's longing and sadness. The lyrics describe a past love that has faded away, but the singer still clings to the memories. The overall atmosphere of the song is nostalgic and pensive, creating a sense of sadness and loneliness.
+
+                    Prior Arousal: 3.49
+                    GroundTruth Arousal: 3.51
+                    Delta: 0.02
+                    
+### Example 8
+                    Lyrics:
+                    Thank you.
+Thank you.
+
+                    Description:
+                    The music is a solo acoustic guitar piece with a soft and gentle mood. The melody is played on a clean and bright acoustic guitar with a slight reverb effect, creating a dreamy and nostalgic atmosphere. The piano enters towards the end of the piece, adding a subtle and emotional layer to the music. The overall feeling of the song is one of reflection, sadness, and longing. The tempo is slow and steady, creating a sense of calm and tranquility. The vocal expression is soft and gentle, conveying a sense of sadness and longing. The music is well-suited for use in background contexts, such as in movies, TV shows, or advertisements, where a soft and emotional soundtrack is needed.
+
+                    Prior Arousal: 4.50
+                    GroundTruth Arousal: 5.25
+                    Delta: 0.75
+                    
+### Example 9
+                    Lyrics:
+                    虽然收敛了许多的情感
+还是泄露了我的不安
+于是你开始冷淡
+我也开始问自己该怎么办
+如果你一直到我的意义里
+
+                    Description:
+                    The song is a pop ballad with a slow tempo and a calm emotional color. The piano plays the main melody, accompanied by a gentle bass and soft drums. The vocalist's voice is emotional and sad, expressing a sense of regret and loss. The lyrics are about a failed relationship and the emotional pain that comes with it. Overall, the song creates a melancholic and reflective atmosphere, making the listener feel sad and reflective.
+
+                    Prior Arousal: 3.93
+                    GroundTruth Arousal: 4.03
+                    Delta: 0.10
+                    
+### Example 10
+                    Lyrics:
+                    忘記公車開到哪裡
+路燈照到哪裡
+回憶走到哪裡
+謊言總是難忘記
+用一手教會我
+
+                    Description:
+                    The song is a slow-tempo ballad with a melancholic emotion. The piano plays the main melody, accompanied by a gentle bassline and soft drums. The vocalist's voice is emotional and sad, expressing regret and longing. The song's emotional color is dark and minor-toned, creating a sense of sadness and despair. Overall, the song's mood is one of melancholy and loss.
+
+                    Prior Arousal: 5.35
+                    GroundTruth Arousal: 5.32
+                    Delta: -0.03
+                    
+### Example 11
+                    Lyrics:
+                    色 混在一起也可口了
+你安静的
+我跳跃着
+手牵住了
+以后 世界有不同颜色
+啊 你的大心脏
+足够包围我所有天马星空
+闪闪 啊
+
+                    Description:
+                    The song is a pop ballad with a female vocalist singing melodically. The tempo is medium with a steady beat and a piano accompaniment. The emotional color of the song is soothing and calming with a gentle melody and harmonious vocals. The vocal expression is emotional and heartfelt. The song creates a sense of intimacy and nostalgia, making the listener feel relaxed and sentimental. Overall, the song has a positive valence and low arousal.
+
+                    Prior Arousal: 4.59
+                    GroundTruth Arousal: 5.23
+                    Delta: 0.63
+                    
+### Example 12
+                    Lyrics:
+                    你的胸膛 抵著眼上香
+吻你身上的香
+你的一舉一動 曖昧動作
+在暗示些什麼
+有時作有時用 我無法捉摸
+就這樣著了魔
+也許有時太無法
+
+                    Description:
+                    The song is a pop ballad with a slow tempo and a female vocalist. The emotional color of the melody is soothing and emotional, with a piano accompaniment and subtle string arrangements. The vocalist sings with a soft and delicate voice, expressing a longing and regretful sentiment. The lyrics describe a past relationship and the singer's inability to move on from it. Overall, the song creates a melancholic and nostalgic mood, making the listener feel sad and reflective.
+
+                    Prior Arousal: 6.18
+                    GroundTruth Arousal: 5.00
+                    Delta: -1.18
+                    
+### Example 13
+                    Lyrics:
+                    作词 李宗盛
+作曲 李宗盛
+我坐在咖啡店
+落地窗的前面
+雨水洒满整条街
+和人们的脸
+靠近的
+
+                    Description:
+                    The song is a slow-tempo ballad with a melancholic emotion. The piano plays the main melody, accompanied by the gentle rhythm of the drums. The vocalist's voice is emotional and full of passion, expressing the singer's inner feelings. The lyrics describe a sad situation, such as a breakup or the loss of a loved one, seen through the lens of a coffee shop setting. The song's emotional color is dark and minor-toned, creating a sense of sadness and longing. Overall, the song's柔和 melody and emotional expression make the listener feel sad and reflective.
+
+                    Prior Arousal: 3.77
+                    GroundTruth Arousal: 3.49
+                    Delta: -0.28
+                    
+### Example 14
+                    Lyrics:
+                    用眼 发现在印象中被蔓延
+你说你放弃了把援
+其实不需要清淀点水
+打换自己是谁之位
+吞了你用力一口下咽
+红旗万载空中增淀
+
+                    Description:
+                    The song is a pop ballad with a female vocalist singing. The tempo is medium with a gentle acoustic guitar accompaniment and subtle use of cello. The melody is emotional and heartfelt, with the vocalist expressing regret and longing. The vocal delivery is emotional and sincere, with the vocalist's voice cracking slightly towards the end of the song. The overall emotion of the song is sad and nostalgic.
+
+                    Prior Arousal: 4.13
+                    GroundTruth Arousal: 5.03
+                    Delta: 0.90
+                    
+### Example 15
+                    Lyrics:
+                    学会 要如何才能够学会
+学会原谅你对我的误解
+学会习惯你对我说你累
+我不想再学会
+流不出眼泪去学会
+
+                    Description:
+                    The song is a ballad with a slow tempo and a sad emotion. The piano plays the main melody, accompanied by the gentle bass and soft drums. The singer's voice is emotional and sad, expressing her feelings of regret and forgiveness. The lyrics describe a couple's struggle to understand each other and the pain they have caused each other. The song's emotional color is dark and minor-toned, creating a sense of sadness and longing. Overall, the song's柔和 instrumentation and the singer's emotional performance make it a powerful tool for expressing regret and forgiveness.
+
+                    Prior Arousal: 4.87
+                    GroundTruth Arousal: 5.05
+                    Delta: 0.18
+                    
+### Example 16
+                    Lyrics:
+                    两手拾风将控罐收藏
+期望温暖汤
+的痛了的着泪要找经过
+四处汉苑全无天使黑光
+他身有光芒
+迎信天国
+纵使命运将他一世隐藏
+仍然远发过梦见
+
+                    Description:
+                    The song is a ballad performed by a female singer. The emotion conveyed in the song is one of longing and sadness. The tempo is medium with a gentle piano accompaniment and a heartfelt vocal performance. The melody is simple and catchy, with a repetitive chorus that creates a sense of longing. The vocal expression is emotional and heartfelt, conveying the singer's yearning for something that she has lost. Overall, the song's emotional color is dark and melancholic, creating a sense of sadness and loss.
+
+                    Prior Arousal: 3.99
+                    GroundTruth Arousal: 5.79
+                    Delta: 1.79
+                    
+### Example 17
+                    Lyrics:
+                    没有什么错
+难道你不爱我
+要这样来爱我
+爱去爱死我
+有贷的钱哪里去
+什么
+
+                    Description:
+                    The song is a rock ballad with a slow tempo and a melancholic emotional color. The vocal performance is emotional and passionate, with the singer expressing heartbreak and sorrow. The guitar solo towards the end adds to the emotional impact of the song. Overall, the song is likely to evoke feelings of sadness and loss in the listener.
+
+                    Prior Arousal: 7.94
+                    GroundTruth Arousal: 8.20
+                    Delta: 0.26
+                    
+### Example 18
+                    Lyrics:
+                    谢谢大家那么收拾
+来到这里
+我在图形的演唱会
+现在开始
+来耶
+睡
+
+                    Description:
+                    The song is a ballad with a slow tempo and a melancholic emotion. The piano plays the main melody, accompanied by the bass and drums. The singer's voice is emotional and sincere, expressing a longing and regret. The overall atmosphere of the song is sad and nostalgic.
+
+                    Prior Arousal: 3.30
+                    GroundTruth Arousal: 2.55
+                    Delta: -0.75
+                    
+### Example 19
+                    Lyrics:
+                    如果需要原谅
+为何闪烁的泪在你眼眶
+如果不愿让爱变分岔
+是一段虚假
+也许解不开
+又不忍心
+
+                    Description:
+                    The song is a ballad with a slow tempo and a melancholic emotional color. The piano plays the main melody, accompanied by a soft drum beat. The vocalist's voice is emotional and sorrowful, expressing the pain and regret of a broken relationship. The lyrics describe the singer's willingness to forgive and the desire to keep the relationship alive, but also acknowledge the reality that it may be too late. Overall, the song creates a sense of sadness and longing, making the listener feel empathetic towards the singer's situation.
+
+                    Prior Arousal: 3.25
+                    GroundTruth Arousal: 2.77
+                    Delta: -0.48
+                    
+### Example 20
+                    Lyrics:
+                    我终于掉进你舍的陷阱
+不能不愿呼吸
+看着你诱惑的年纪
+让我忘记了自己
+这感觉让我感到窒息
+Zither Harp
+
+                    Description:
+                    The song is a pop ballad with a female vocalist. The overall emotion of the song is sad and melancholic. The energy level and tempo of the song are medium with a gentle piano melody and a soft female vocal. The emotional color of the melody and harmony is dark and minor-toned. The vocal expression is emotional and passionate. The song makes the listener feel sad and nostalgic.
+
+                    Prior Arousal: 3.42
+                    GroundTruth Arousal: 3.53
+                    Delta: 0.12
+                    
+### Example 21
+                    Lyrics:
+                    想面对压力
+对不起
+对所有建议
+谢谢你
+面对原始的自己
+迷不及
+没有人能放弃
+不要怀疑
+不要怀疑
+不要怀疑
+不要怀疑
+不要怀疑
+温柔些收起来
+温柔些收起来
+
+                    Description:
+                    The song is an upbeat pop dance track with a positive emotion and high energy. The melody is catchy and repetitive, with a strong bassline and synthesiser hooks. The vocals are powerful and energetic, singing about overcoming obstacles and standing up for oneself. The lyrics are inspiring and motivating, with a message of self-acceptance and empowerment. Overall, the song encourages listeners to embrace their individuality and stay true to themselves.
+
+                    Prior Arousal: 7.10
+                    GroundTruth Arousal: 7.56
+                    Delta: 0.46
+                    
+### Example 22
+                    Lyrics:
+                    现在千万别让岁月的钟声敲碎了我的梦
+小妞小妞小妞小妞千万别再害羞
+小妞小妞小妞千万别再害羞
+Honey little baby 你的心中一发芽
+
+                    Description:
+                    The song is a children's song with a cheerful and energetic mood. The tempo is fast with a lively beat and playful keyboard harmony. The vocal performance is enthusiastic and joyful with repetitive lyrics that encourage listeners to sing along. The emotional color of the song is bright and uplifting, creating a sense of happiness and joy. Overall, the song is an engaging and entertaining children's anthem that promotes happiness and positivity.
+
+                    Prior Arousal: 6.91
+                    GroundTruth Arousal: 6.87
+                    Delta: -0.04
+                    
+### Example 23
+                    Lyrics:
+                    不错 唱着爱人好累 学着不软弱
+一个人的生活 其实也不错
+跟自己说 是没什么
+只不过少个人来爱我
+没有你在身边
+也可以快乐地环游世界
+谁说少了你的安慰
+就只能合作
+
+                    Description:
+                    The song is an R&B ballad with a female vocalist singing emotionally. The tempo is medium with a steady beat and a simple bass line. The vocal is emotional and heartfelt. The song is about a woman who is in love but feels that her lover is too tired and weak. She wants to be the one to support and comfort her lover but feels that she is not good enough. She also feels that she is not important to her lover as she is not around. The song is emotional and sad with a sense of resignation.
+
+                    Prior Arousal: 7.10
+                    GroundTruth Arousal: 7.65
+                    Delta: 0.55
+                    
+### Example 24
+                    Lyrics:
+                    我们唯一的想法
+出空全场
+连关随你耳听八方
+我们像云宝一样
+这种团结的力量
+谁能阻挡
+我们灵魂发烫
+我们身体发光
+带着王军枪把
+冲向唯一的战场
+我们灵魂发烫
+我们身体发光
+等待哨音吹响
+把怒狗全送进狼狂
+强
+
+                    Description:
+                    The song is an upbeat pop song with a energetic mood. The tempo is fast with a lively beat and powerful drumming. The melody is catchy and repetitive, with a high-pitched female vocal leading the singing. The vocal is passionate and energetic, expressing joy and excitement. The harmony is simple with a few repeated chords. The emotional color of the song is upbeat and positive, creating a sense of excitement and happiness. Overall, the song's energy and emotion make it suitable for dancing and celebrating.
+
+                    Prior Arousal: 7.48
+                    GroundTruth Arousal: 8.04
+                    Delta: 0.56
+                    
+### Example 25
+                    Lyrics:
+                    Zither Harp
+飘落街灯灯照
+一丝丝的回忆
+如梦如
+
+                    Description:
+                    The song is a Chinese folk song with a slow tempo and a melancholic emotion. The melody is sung softly by a female singer, accompanied by acoustic guitar and cello. The vocal expression is emotional and passionate, reflecting the singer's sorrowful feelings. The harmonious arrangement creates a calming and soothing atmosphere, making the listener feel relaxed and sentimental. Overall, the song's emotional color is dark and minor-toned, reflecting the singer's sorrowful mood.
+
+                    Prior Arousal: 3.78
+                    GroundTruth Arousal: 4.25
+                    Delta: 0.48
+                    
+### Example 26
+                    Lyrics:
+                    愿用今一生
+献上当作火炎
+来荣耀
+荣耀你生命
+请不吝点赞 订阅 转发 打赏支持明镜与点点栏目
+
+                    Description:
+                    The song is a traditional Chinese folk song. The overall emotion of the song is peaceful and soothing. The energy level and tempo feeling of the song are slow and calm. The emotional color of the melody and harmony is bright and uplifting. The vocal expression is gentle and soothing. The song makes the listener feel relaxed and calm.
+
+                    Prior Arousal: 5.78
+                    GroundTruth Arousal: 5.20
+                    Delta: -0.58
+                    
+### Example 27
+                    Lyrics:
+                    一直等一个人
+等一个人
+
+                    Description:
+                    The song is a pop ballad with a moderate tempo and emotional color of melancholy. The piano melody is gentle and emotional, while the vocal performance is heartfelt and sorrowful. The lyrics describe a heartbreak and the singer's inability to move on from the past relationship. The overall emotion of the song is one of sadness and longing.
+
+                    Prior Arousal: 4.91
+                    GroundTruth Arousal: 4.89
+                    Delta: -0.02
+                    
+### Example 28
+                    Lyrics:
+                    憑什麼 憑什麼
+別以為我會害怕挫折
+憑什麼 憑什麼
+我不會輕易對你示弱
+你愛我愛我愛我愛我愛愛愛
+我愛你愛你愛你愛你愛愛愛
+你說你愛我愛我愛我愛愛愛愛
+你憑什麼
+猜猜你像沒自我
+
+                    Description:
+                    The song is a pop ballad with a slow tempo and a melancholic emotional color. The melody is sung softly by a female voice, accompanied by piano and gentle drums. The lyrics express the singer's feelings of sadness and desperation, as she asks "Why? Why?" and declares that she will not easily give up. Despite the emotional intensity of the song, there is a sense of resilience and determination in the singer's voice. Overall, the song is likely to evoke feelings of sadness, loneliness, and determination in the listener.
+
+                    Prior Arousal: 6.86
+                    GroundTruth Arousal: 7.60
+                    Delta: 0.74
+                    
+### Example 29
+                    Lyrics:
+                    就想快快看到结果
+就这样吧让我解脱
+就这样吧不到反我
+能舍才能得
+不能舍就难得
+爸爸一直这样
+告诉我怎么不懂
+管他那么多
+我就是做我想的
+想他来他不来
+只是让自己更难过
+Maybe someday we'll get together
+So one plus one is four
+So one plus one is four
+
+                    Description:
+                    The song is a pop song with a fast tempo and energetic mood. The emotional color of the melody is bright and uplifting, with a catchy and repetitive chorus. The vocal expression is passionate and the instrumentation includes electric guitars, drums, and keyboard. The lyrics are about wanting to be understood and not being able to express oneself properly. Overall, the song makes the listener feel excited and motivated.
+
+                    Prior Arousal: 7.28
+                    GroundTruth Arousal: 7.48
+                    Delta: 0.20
+                    
+### Example 30
+                    Lyrics:
+                    微暗的光透过窗戒
+照在我疲惫的容颜
+虽然只有淡淡光线
+却让我几乎睁不开双眼
+回忆变成一种慰藉
+是该我流过的眼泪
+但是每当夜晚来临
+就有一种莫名而来的悲哀
+Zither Harp
+
+                    Description:
+                    The song is a pop ballad with a slow tempo and a melancholic emotion. The piano intro creates a sense of longing and sadness, setting the tone for the rest of the song. The male vocalist's voice is emotional and heartfelt, expressing the singer's inner turmoil and heartache. The lyrics are written in a poetic manner, describing the singer's unrequited love and the pain of being left behind. The violin solo towards the end of the song adds to the emotional impact, creating a sense of sadness and longing. Overall, the song's emotional and perceptual aspects evoke a feeling of sadness and loss, making it a suitable choice for those who seek music to express their emotions.
+
+                    Prior Arousal: 5.74
+                    GroundTruth Arousal: 6.37
+                    Delta: 0.63
+                    
+### Example 31
+                    Lyrics:
+                    說不完情意濃
+我倆 竟為親親
+句句話都有種
+不管明天
+到明天要相送
+臉
+
+                    Description:
+                    The song is a folk ballad with a melancholic emotion and a slow tempo. The melody is played on a nylon-string acoustic guitar, accompanied by a soft bass. The vocal is a soft and gentle female voice singing the main melody. The lyrics are about a couple who cannot express their true feelings to each other and are worried about their future. The song creates a sense of sadness and longing, as the lyrics describe the couple's inability to communicate and the uncertainty of their future together. The overall emotional color of the song is melancholic, with a calm and soothing atmosphere.
+
+                    Prior Arousal: 3.56
+                    GroundTruth Arousal: 3.64
+                    Delta: 0.08
+                    
+### Example 32
+                    Lyrics:
+                    有口罩一个给我
+事都坏说了太多就真真不了
+也许时间是一种解药
+也是我现在正服下的毒药
+看不见你的笑我怎么睡得着
+POW envolver
+
+                    Description:
+                    The song is a ballad with a male vocalist singing. The tempo is medium with a simple acoustic guitar accompaniment and a subtle bass line. The melody is emotional and the vocal delivery is heartfelt. The lyrics are about a breakup and the singer's feelings of heartbreak and loneliness. The overall emotion of the song is sad and melancholic.
+
+                    Prior Arousal: 3.20
+                    GroundTruth Arousal: 2.85
+                    Delta: -0.35
+                    
+### Example 33
+                    Lyrics:
+                    伤感故事 谁真的爱听
+特别那声音 怎么任性
+Oh memory 多年不停逃避
+对你的感情 一直累积
+Hey dear my friend
+
+                    Description:
+                    The song is a ballad with a slow tempo and a melancholic emotion. The piano plays the main melody, accompanied by the bass and light drums. The vocalist's voice is soft and emotional, singing about a heartbreak story. The lyrics are heartfelt and sincere, expressing the pain and regret of the narrator. The emotional color of the song is dark and minor-toned, creating a sense of sadness and longing. Overall, the song's mood is one of heartbreak and loss.
+
+                    Prior Arousal: 3.25
+                    GroundTruth Arousal: 3.61
+                    Delta: 0.36
+                    
+### Example 34
+                    Lyrics:
+                    眼里的音乐 最动心的歌
+你拨着 全世界突然亮了
+多么实在的感觉 望着你的脸
+这一刻 我到了被人遗忘的永远
+在陌生的街上
+
+                    Description:
+                    The song is a ballad with a slow tempo and a melancholic emotion. The piano plays the main melody, accompanied by the acoustic guitar and the singer's gentle voice. The vocal expression is emotional and sincere, conveying a sense of longing and nostalgia. The lyrics describe a heartbreak and the feeling of being forgotten, with the singer yearning for a love that has gone forever. The overall atmosphere of the song is sad and melancholic, making the listener feel a sense of loss and longing.
+
+                    Prior Arousal: 3.34
+                    GroundTruth Arousal: 4.31
+                    Delta: 0.96
+                    
+### Example 35
+                    Lyrics:
+                    是星期天 Oh baby
+虽然交通车水马龙
+用几人超哥招你我
+但我对你的思念
+谁也别想挡着我
+有些事我没有说
+因为太多感动
+你对我的好我都记得
+你有没有
+所以我签了这么一首歌
+为你唱
+
+                    Description:
+                    The song is a pop ballad performed by a female singer. The overall emotion of the song is sentimental and nostalgic. The tempo is medium with a gentle piano accompaniment and subtle string arrangements in the background. The vocal performance is emotional and heartfelt, conveying the singer's longing and affection for the past. The lyrics are personal and intimate, describing a conversation with a loved one about their shared memories and experiences. The song's emotional color is柔和 and nostalgic, creating a sense of longing and reminiscence. Overall, the song's emotional impact on the listener is soothing and calming, evoking a sense of nostalgia and longing for the past.
+
+                    Prior Arousal: 6.02
+                    GroundTruth Arousal: 5.09
+                    Delta: -0.93
+                    
+### Example 36
+                    Lyrics:
+                    It's on flow
+Secrets
+Victorious
+Secrets
+Victorious
+Secrets
+Victorious
+Secrets
+Victorious
+Why does everybody always want to assume
+who
+
+                    Description:
+                    The song features a male voice rapping over a hip-hop beat. The overall emotion of the song is energetic and upbeat. The tempo is fast with a strong beat and a repetitive hook. The melody is repetitive and catchy with a synthesizer lead. The vocal expression is passionate and the lyrics are about winning and being victorious. The song makes the listener feel excited and motivated.
+
+                    Prior Arousal: 6.91
+                    GroundTruth Arousal: 7.89
+                    Delta: 0.98
+                    
+### Example 37
+                    Lyrics:
+                    哦
+椰子
+是不会飞翔的翅膀
+翅膀
+是落在天上的椰子
+天堂
+原来应该不是妄想
+只是我早已经遗忘
+我早已经遗忘
+
+                    Description:
+                    The song is a pop ballad with a calm and slow tempo. The emotional color of the melody is bright and uplifting, with a female vocalist singing softly and emotionally. The vocal expression is passionate and heartfelt, conveying a sense of sadness and longing. The piano accompaniment provides a soothing background, while the subtle use of hand claps and shakers adds a light and rhythmic element to the song. Overall, the song creates a sense of melancholy and nostalgia, making the listener feel sad and reflective.
+
+                    Prior Arousal: 4.40
+                    GroundTruth Arousal: 3.84
+                    Delta: -0.56
+                    
+### Example 38
+                    Lyrics:
+                    我要 我要追尋
+追尋那無盡的深情
+追尋那永遠的光明
+
+                    Description:
+                    The song is a Chinese traditional opera piece. It has a slow tempo with a sad and melancholic emotional color. The vocal performance is gentle and passionate, expressing the singer's longing for their loved one. The melody is simple and straightforward, with a focus on the emotional delivery. Overall, the song creates a sense of longing and sadness, making it a fitting choice for a Chinese traditional opera piece.
+
+                    Prior Arousal: 5.87
+                    GroundTruth Arousal: 5.49
+                    Delta: -0.38
+                    
+### Example 39
+                    Lyrics:
+                    了速度才恍然顿悟
+最亮的烟烛是你的投入
+仿佛我的一举一动你都会在乎
+我快乐弥漫途
+原谅我疏忽了你的感触
+细心的包容着我的迷糊
+无论爱出现在何时
+请不吝点赞 订阅 转发 打赏支持明镜与点点栏目
+
+                    Description:
+                    The song is a pop ballad with a male vocalist singing. The overall emotion of the song is sad and mournful. The energy level and tempo of the song are slow, creating a somber atmosphere. The emotional color of the melody and harmony is dark and minor-toned, with a solo violin playing the main melody. The vocal expression is emotional and heartfelt, with the vocalist singing softly and with tears in his eyes. The song makes the listener feel sad and nostalgic, with a longing for the past and a sense of loss.
+
+                    Prior Arousal: 3.56
+                    GroundTruth Arousal: 4.85
+                    Delta: 1.29
+                    
+### Example 40
+                    Lyrics:
+                    请用力地背在身上
+隐隐作痛的肩膀
+雨种种地打在背上
+我这个背景难得
+
+                    Description:
+                    The song is a melancholic ballad with a slow tempo and a gentle piano melody. The vocalist's voice is emotional and sorrowful, expressing the pain of losing someone. The lyrics describe the feeling of carrying the weight of grief on one's shoulders and the difficulty of moving on. The overall emotion of the song is sadness and melancholy.
+
+                    Prior Arousal: 3.37
+                    GroundTruth Arousal: 3.37
+                    Delta: 0.00
+                    
+### Example 41
+                    Lyrics:
+                    我想加油 藏之人了 誰都不要躲
+單純假戲斟酌
+跳進來 教我 給你機會放縱
+拜託大家 不要擺在美式穿太多
+一而剎脫的情況 關聯身形又突破
+Yo baby I want you I need you
+Alison
+我們穿了太多煩惱 害到自己受不了
+脾氣總會莫名其妙 冒煙又燒焦
+你辛苦我辛苦
+
+                    Description:
+                    The song is a hip-hop track with a fast tempo and energetic mood. The vocalists rap confidently and loudly, expressing their determination and self-confidence. The melody is catchy and repetitive, with a strong bassline and a catchy chorus. The instrumentation is simple and effective, with a steady beat and repetitive rhythms. Overall, the song is upbeat and uplifting, making the listener feel excited and motivated.
+
+                    Prior Arousal: 7.22
+                    GroundTruth Arousal: 7.95
+                    Delta: 0.73
+                    
+### Example 42
+                    Lyrics:
+                    Ah, yeah
+Christmas isn't Christmas
+Till it happens in your heart
+Somewhere deep inside you
+Is where Christmas really starts
+So give your heart to me
+You'll discover
+
+                    Description:
+                    The song is a pop ballad with a female vocalist singing the main melody. The tempo is medium with a gentle piano accompaniment and subtle drumming. The emotional color of the melody is sad and the vocal expression is emotional with a heartfelt delivery. The song's mood is one of longing and yearning for someone's love. The overall feeling of the song is melancholic.
+
+                    Prior Arousal: 6.29
+                    GroundTruth Arousal: 6.08
+                    Delta: -0.21
+                    
+### Example 43
+                    Lyrics:
+                    发现我的追逐
+我停下脚步
+放下了矜持
+忘了自己
+我闭上眼睛
+在你的怀里
+把心给你
+就这样爱着你
+是
+
+                    Description:
+                    The song is a pop ballad with a female vocalist singing. The overall emotion of the song is melancholic. The tempo is slow with a gentle piano melody and a soft female vocal. The emotional color of the melody is dark and minor-toned. The vocal expression is emotional and passionate. The song makes the listener feel sad and nostalgic.
+
+                    Prior Arousal: 4.25
+                    GroundTruth Arousal: 4.04
+                    Delta: -0.21
+                    
+### Example 44
+                    Lyrics:
+                    合唱
+在疲憊上無賴
+說你都想愛
+我試著要離開
+文史裡的植物
+你的舊稱專屬
+我冷靜的對付
+學會了送信書
+不輕易的鎖住
+Oh baby 掌控你的臉
+把你的臉頂面具放在一邊
+我哩個絕個你愛美愛
+
+                    Description:
+                    The song is a high-energy, upbeat dance-pop track. The tempo is fast with a steady beat and catchy melody. The emotional color of the song is upbeat and energetic. The vocal expression is passionate and the instruments are played aggressively. The song makes the listener feel happy and excited. Overall, the song's valence is positive and its arousal is high.
+
+                    Prior Arousal: 7.21
+                    GroundTruth Arousal: 7.57
+                    Delta: 0.37
+                    
+### Example 45
+                    Lyrics:
+                    用最真诚的笑容和拥抱
+友情是我们拥有最幸福的动力
+一起创造
+去飞翔
+让我们一起努力吧
+用最真诚的笑容和拥抱
+友情是我们拥有最幸福的动力
+一起创造
+让我们分享
+
+                    Description:
+                    The song is an upbeat and energetic rock song. It has a fast tempo and exciting rhythm, with powerful drums and distorted guitars. The emotional color of the song is upbeat and positive, with a sense of joy and happiness. The vocals are passionate and energetic, singing about the importance of true friendship and the power of love. Overall, the song creates a feeling of excitement and happiness, making it a great choice for a upbeat and energetic scene in a movie or TV show.
+
+                    Prior Arousal: 7.50
+                    GroundTruth Arousal: 7.93
+                    Delta: 0.43
+                    
+### Example 46
+                    Lyrics:
+                    我對你深深的感情 無人可以阻擋我的心
+這永遠與你相處 永恆過一生 同樣將我們一起 所擁中交代你
+
+                    Description:
+                    The song is a ballad with a slow tempo and a melancholic emotion. The piano plays the main melody, accompanied by the gentle rhythm of the bass. The vocalist's voice is soft and emotional, expressing the singer's sorrow and longing. The lyrics describe a heartbreak and the pain of losing a loved one. The overall atmosphere of the song is mournful and nostalgic, creating a sense of sadness and loneliness.
+
+                    Prior Arousal: 3.96
+                    GroundTruth Arousal: 4.33
+                    Delta: 0.38
+                    
+### Example 47
+                    Lyrics:
+                    去让未来随口唤起
+我们一路练习
+你我梦想
+不落飞行
+听号叫声音
+随阳光又升起
+应付替代替
+骄傲的地率
+与你的默契
+就像一极锦
+带着梦继续
+不落的飞行
+优优独播剧场——YoYo Television Series Exclusive
+
+                    Description:
+                    The song is an energetic and upbeat pop dance track. It has a fast tempo and exciting rhythm, with a catchy melody and harmonious vocals. The emotional color of the song is joyful and celebratory, with a sense of excitement and happiness. The vocals are passionate and energetic, singing about the joy of life and the excitement of pursuing dreams. The song's energy level is high, making it an ideal choice for dancing and celebrating. Overall, this song is a feel-good anthem that encourages listeners to embrace life and pursue their dreams with enthusiasm and joy.
+
+                    Prior Arousal: 7.35
+                    GroundTruth Arousal: 8.08
+                    Delta: 0.73
+                    
+### Example 48
+                    Lyrics:
+                    Hãy subscribe cho kênh La La School Để không bỏ lỡ những video hấp dẫn
+
+                    Description:
+                    The song is a ballad with a slow tempo and a melancholic emotion. The piano plays the main melody, accompanied by the gentle strumming of the guitar. The vocal is soft and emotional, singing about a lost love. The lyrics are heartfelt and sincere, expressing the pain and longing of the singer. The overall atmosphere of the song is one of sadness and reflection, as the singer remembers the past and the love that they once had.
+
+                    Prior Arousal: 3.26
+                    GroundTruth Arousal: 3.01
+                    Delta: -0.24
+                    
+### Example 49
+                    Lyrics:
+                    你未來 將你背棄
+心過頭 想的總是你
+當初我們 兩人相愛時
+勇氣未開 也有在天
+只有你 我已經奮鬥
+
+                    Description:
+                    The song is a traditional Chinese ballad. Its emotional color is sad and mournful. The tempo is slow, with a steady beat and a bass line that creates a sense of melancholy. The vocal performance is emotional and expressive, with a strong emphasis on the sorrowful lyrics. The melody is simple and repetitive, with a few decorative notes that add to the emotional impact. Overall, the song creates a powerful sense of loss and longing.
+
+                    Prior Arousal: 4.69
+                    GroundTruth Arousal: 4.13
+                    Delta: -0.55
+                    
+### Example 50
+                    Lyrics:
+                    Weit und nie erteilt, nicht in zwei Taugen, die Leut, die Tauben.
+Vertraue und glaube, es hilft, es heilt die göttliche Kraft!
+
+                    Description:
+                    The song is a heavy metal instrumental. It is medium tempo with a fast-paced drumming rhythm, aggressive electric guitar riffs, and a powerful bass line. The overall emotion of the song is aggressive and intense. The music is loud, intense, and heavy, making the listener feel energized and alert. The vocal or instrumental expression is passionate and intense, with the electric guitar solos being the most prominent feature. The emotional color of the melody and harmony is dark and minor-toned, adding to the overall intensity of the song. The song's valence is negative, and its arousal is high.
+
+                    Prior Arousal: 7.48
+                    GroundTruth Arousal: 8.31
+                    Delta: 0.82
+                    
+### Example 51
+                    Lyrics:
+                    開開開開
+開開開開
+開開開開
+開開開開
+每天送上冠冠
+給你這個阿齋
+齋齋齋齋
+齋
+直到你沒人愛
+為你介紹小開
+開開開開
+你到底行不行
+要拼就我最心
+你OK我開心
+開開開開
+
+                    Description:
+                    The song is an upbeat and energetic pop song. It has a fast tempo and exciting rhythm that makes the listener feel energized and happy. The melody is catchy and repetitive, with a bright and uplifting tone. The vocals are passionate and the instrumentation includes catchy guitar riffs and punchy drums. Overall, the song's positive emotion and high energy make it a perfect choice for a fun and lively setting.
+
+                    Prior Arousal: 7.29
+                    GroundTruth Arousal: 7.77
+                    Delta: 0.49
+                    
+### Example 52
+                    Lyrics:
+                    我爱上了这个世界
+一下午的咖啡
+我感觉很永远
+从此失眠
+错过了你的双眼
+感动的这个世界
+画面水不完美
+你的笑都改变
+翻下一页
+Zither Harp
+
+                    Description:
+                    The song is a pop ballad with a male vocalist singing emotionally. The tempo is medium with a steady drum beat, keyboard harmony, and a bass line. The melody is soothing with a piano accompaniment and the vocal is emotional and passionate. The song is about falling in love and the joy and excitement it brings. The lyrics are "爱上了整个世界 没有一点点遗憾 一整天的咖啡 我感觉很永远 从此失眠 透过你双眼 看见整个世界 哇哦 哇哦 想象的画面不完美 你的笑颜 改变下一天" The overall emotion of the song is positive and energetic.
+
+                    Prior Arousal: 7.21
+                    GroundTruth Arousal: 7.56
+                    Delta: 0.35
+                    
+### Example 53
+                    Lyrics:
+                    电话的两边充满蜜语甜言
+我的声音会为你充电
+你说看看窗边有颗流星出现
+你说张开双眼才能保持顾面
+在你身边的人
+
+                    Description:
+                    The song is a ballad with a slow tempo and a melancholic emotional color. The melody is played on a piano, accompanied by a gentle bass. The vocalist's voice is soft and emotional, singing about a phone call from a past lover. The lyrics describe a conversation filled with sweet nothings and promises, but the tone of the song suggests that the relationship has since ended. The overall emotion of the song is one of sadness and nostalgia.
+
+                    Prior Arousal: 4.14
+                    GroundTruth Arousal: 4.65
+                    Delta: 0.52
+                    
+### Example 54
+                    Lyrics:
+                    给你轻薄的光线
+可以陪你犹豫
+但更爱替你高兴
+只会是你一个人
+至少还会有我
+我亲爱的还烦恼是什么
+Baby just take it easy
+Just take it easy
+Just take it easy
+
+                    Description:
+                    The song is a pop ballad with a slow tempo and a female vocalist. The emotional color of the melody is sad and the vocal expression is emotional and heartfelt. The lyrics are about a girl's love for a boy, who she wants to be with but fears losing. The lyrics describe the girl's inner turmoil and her desire to be with the boy, even though she knows it may not work out. The overall mood of the song is one of sadness and longing.
+
+                    Prior Arousal: 6.00
+                    GroundTruth Arousal: 6.25
+                    Delta: 0.26
+                    
+### Example 55
+                    Lyrics:
+                    你呀 兩個人又能怎樣
+前一分鐘 以為我 只是我
+懷疑是愛的念頭
+你不再感覺失落
+我怎麼 都不認識這 一個我
+雖然我死都非東
+有一天我
+
+                    Description:
+                    The song is a pop ballad with a moderate tempo and emotional color of melancholic. The piano intro creates a calm and soothing atmosphere, setting the tone for the singer's emotional confession. The female vocalist's voice is emotional and sincere, expressing her regret and longing for the past. The lyrics are heartfelt and personal, describing the singer's confusion and suspicion in a relationship. The guitar solo towards the end adds a touch of sadness and longing, enhancing the emotional impact of the song. Overall, the song creates a sense of melancholy and nostalgia, making the listener feel sad and reflective.
+
+                    Prior Arousal: 6.14
+                    GroundTruth Arousal: 5.45
+                    Delta: -0.69
+                    
+### Example 56
+                    Lyrics:
+                    关于爱情是否能学会更多
+当你一秒一秒把我的心一片片剥落
+终于这一次我学会放手
+胖胖的手胖胖的背后
+有过相遇
+
+                    Description:
+                    The song is a ballad with a slow tempo and a melancholic emotion. The piano is playing the main melody, accompanied by the voice singing softly. The vocal expression is emotional and sincere. The lyrics are about the singer's feelings about love and the pain of losing it. The overall atmosphere of the song is sad and nostalgic. It makes the listener feel sad and longing for the past.
+
+                    Prior Arousal: 2.83
+                    GroundTruth Arousal: 2.85
+                    Delta: 0.02
+                    
+### Example 57
+                    Lyrics:
+                    Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+Hey
+
+                    Description:
+                    The song is an instrumental. The tempo is medium with a steady drumming rhythm, acoustic guitar melody and a subtle bass line. The overall emotion is calm and soothing. The acoustic guitar is playing a beautiful melody with a slight reverb on it. The music is simple, easy-listening and calming. It makes the listener feel relaxed and at ease.
+
+                    Prior Arousal: 5.28
+                    GroundTruth Arousal: 5.16
+                    Delta: -0.12
+                    
+### Example 58
+                    Lyrics:
+                    也要继续 就让我为了你
+不经分支前进
+多艰辛 多委屈
+多疲惫 也不能含情
+就让我为了你
+超越谁的背影
+在风里 在雨里
+在前方的崎岖 不管
+
+                    Description:
+                    The song is an upbeat dance pop track with a strong female vocal leading the melody. The tempo is fast with a persistent 4/4 beat and synthesizer harmony. The emotional color of the song is energetic and uplifting. The lyrics are about the determination and perseverance needed to achieve one's goals, despite the challenges and setbacks faced. The vocal performance is passionate and inspiring, conveying the message of the lyrics. Overall, the song is an encouraging and motivating dance-pop track that would likely evoke feelings of joy and empowerment in listeners.
+
+                    Prior Arousal: 7.47
+                    GroundTruth Arousal: 8.16
+                    Delta: 0.69
+                    
+### Example 59
+                    Lyrics:
+                    曾经真的以为人生就这样了
+平静的心拒绝再有浪潮
+沾了千次的情丝却断不了
+百转千折它将我围绕
+有人问我你究竟是哪里好
+这么多年我还忘不过你
+
+                    Description:
+                    The song is a classical Chinese opera piece. The overall emotion of the song is sorrowful and melancholic. The energy level and tempo feeling of the song are slow and steady. The emotional color of the melody and harmony is dark and minor-toned. The vocal expression is soft and gentle, with a female soprano singing the main melody. The song makes the listener feel sad and mournful, with a sense of loss and longing.
+
+                    Prior Arousal: 4.29
+                    GroundTruth Arousal: 5.16
+                    Delta: 0.87
+                    
+### Example 60
+                    Lyrics:
+                    哪怕谁来挡住他的衣服
+不顾一切只爱你
+在住的远处
+自由的直属
+每一天每一季
+能让我发光的元素
+为自己加速
+再不上别人的路
+现在的我不再需要自我保护
+
+                    Description:
+                    The song is an upbeat pop dance track with a strong female lead vocal. The tempo is fast with a lively rhythm and a catchy melody. The emotional color of the song is upbeat and energetic. The vocal performance is passionate and the instrumentation includes keyboard, electric guitar, and drums. The song is about a girl who is determined to achieve her dreams and overcome obstacles. She sings about her belief in herself and her desire to be自由自在. The lyrics are inspiring and empowering, encouraging listeners to chase their own dreams and not let anyone else's judgment hold them back. Overall, the song is a feel-good anthem that motivates listeners to embrace their individuality and pursue their passions.
+
+                    Prior Arousal: 7.19
+                    GroundTruth Arousal: 7.91
+                    Delta: 0.72
+                    
+### Example 61
+                    Lyrics:
+                    我不是不怕孤独
+也不是毫不在乎
+只是没有理由再如此的糊涂
+再也不要装作一副无辜
+再也不要承受无奈和苦楚
+我不是不怕孤独
+只是有
+
+                    Description:
+                    The song is a pop ballad with a female vocalist singing the main melody. The tempo is medium with a steady beat and a simple piano accompaniment. The emotional color of the melody is sad and the vocal expression is emotional and heartfelt. The lyrics are about the singer's feelings of loneliness and the inability to express herself. Overall, the song creates a melancholic and sad mood.
+
+                    Prior Arousal: 4.60
+                    GroundTruth Arousal: 4.83
+                    Delta: 0.23
+                    
+### Example 62
+                    Lyrics:
+                    当你心情不好
+我的世界就下起了冰雹
+看你开心的笑
+我有多骄傲
+可惜是我没有能力
+埋城堡
+夜长梦多
+雨走花流
+Zither Harp
+
+                    Description:
+                    The song is a pop ballad with a slow tempo and a melancholic emotion. The piano intro sets the tone for the sad and emotional lyrics. The singer's voice is emotional and sincere, conveying the lyrics perfectly. The guitar accompaniment adds to the sorrowful mood. The song's emotional color is dark and minor-toned, creating a sense of longing and loss. Overall, the song's mood is one of sadness and loss, and it is likely to evoke feelings of melancholy and nostalgia in the listener.
+
+                    Prior Arousal: 4.06
+                    GroundTruth Arousal: 4.23
+                    Delta: 0.17
+                    
+### Example 63
+                    Lyrics:
+                    你问我明天过后会如何
+世界若毁灭我们又怎么了
+我笑了
+电影情节太忽然
+只有单纯的你相信着
+Zither Harp
+
+                    Description:
+                    The song is a pop ballad with a slow tempo and a melancholic emotion. The piano intro creates a sense of longing and sadness, setting the tone for the rest of the song. The male vocalist's voice is emotional and sincere, conveying the lyrics with vulnerability. The melody is simple and repetitive, creating a sense of longing and nostalgia. The harmonies are subtle, adding to the emotional impact of the song. Overall, the song's emotional color is dark and melancholic, making it a fitting accompaniment for a sad or reflective moment.
+
+                    Prior Arousal: 3.71
+                    GroundTruth Arousal: 4.04
+                    Delta: 0.33
+                    
+### Example 64
+                    Lyrics:
+                    沒酒來 看見就討厭
+所以你說 喔 沒乾淨
+到底你們做了什麼 施政递情
+我什麼快要毀滅 問世效應男源哭泣
+看上深的海岸線 就連動物都黑眼圈
+連只剩兩三天 當大這個歲富
+好上課打起歌 隨時請後科員
+說我們冤假 我家旨管錯亂
+那輕問冤假 立面出現的都是誰
+怪我沒康樣心 就好像草莓
+可是你根本不知道我的家里
+
+                    Description:
+                    The song is a hip-hop track with a fast tempo and exciting emotional color. The energetic and passionate vocal performance adds to the upbeat and lively mood of the song. The lyrics are rapped in a humorous and playful manner, with the singers complaining about their school life and the challenges they face. The song's energy is contagious, making it a fun and engaging listen. Overall, the valence of the song is positive, and the arousal is high.
+
+                    Prior Arousal: 7.16
+                    GroundTruth Arousal: 7.97
+                    Delta: 0.82
+                    
+### Example 65
+                    Lyrics:
+                    我问我自己 我为了什么可以这样爱你
+我承认这是很难答的问题
+可是唯一的理由应该是你
+爱情的道理 我不清楚
+请给我时间让我用心
+
+                    Description:
+                    The song is a male performance of a Chinese folk song. The overall emotion of the song is melancholic. The tempo is slow with a steady drumming rhythm and a gentle piano accompaniment. The vocal performance is emotional and passionate. The lyrics describe the singer's contemplation of himself and his love for the other person. The song creates a sense of longing and sadness.
+
+                    Prior Arousal: 3.64
+                    GroundTruth Arousal: 4.20
+                    Delta: 0.56
+                    
+### Example 66
+                    Lyrics:
+                    哭也无声
+委屈也是自己撑
+就算哭红了也没人心疼
+我不想我们之间
+又多出了一个人
+增添了我们的伤痕
+由 Amara.org 社群提供的字幕
+
+                    Description:
+                    The song is a ballad with a slow tempo and a melancholic emotional color. The vocal performance is emotional and sorrowful, with a melancholic melody and harmonious background vocals. The instrumentation is simple, with only a piano and acoustic guitar, creating a tranquil and atmospheric soundscape. The lyrics describe the pain and suffering of a broken relationship, and the singer's inability to forget the past and move on. Overall, the song creates a sense of sadness and longing, making it a suitable choice for listeners seeking emotional resonance.
+
+                    Prior Arousal: 3.01
+                    GroundTruth Arousal: 3.41
+                    Delta: 0.40
+                    
+### Example 67
+                    Lyrics:
+                    也能够替你收藏残留手心的勇气
+转过头
+你又将我留在入口
+十月三十的少年是你最想逃开的梦魇
+原来蓝天
+总飘散回白色雾气
+
+                    Description:
+                    The song is a ballad performed by a female singer. The melody is gentle and soothing, with a melancholic tone. The piano accompaniment adds to the solemnity of the song. The singer's voice is emotional and heartfelt, conveying the lyrics with great sincerity. The song as a whole creates a sense of nostalgia and longing for the past. It is a song that one would listen to when reflecting on past memories or moments of sadness.
+
+                    Prior Arousal: 3.62
+                    GroundTruth Arousal: 4.77
+                    Delta: 1.15
+                    
+### Example 68
+                    Lyrics:
+                    《心情的旅行》
+尋找梅比洛雅神殿
+哪兒有我最浪漫的初戀
+假如那座步伐你只來過一遍
+就不會看到那傷活泼把淚比牆上的臉
+Tell me, where are you?
+Slow down to me
+Tell me, where are you?
+
+                    Description:
+                    The song is an electronic dance music (EDM) track with a fast tempo and energetic mood. The vocal performance is passionate and energetic, singing about searching for a lost love in a mystical place. The melody is catchy and repetitive, with a strong bassline and syncopated beats. The instrumentation includes electronic drums, keyboard, and vocal samples. Overall, the song is uplifting and inspiring, making the listener feel happy and motivated.
+
+                    Prior Arousal: 6.64
+                    GroundTruth Arousal: 6.64
+                    Delta: -0.00
+                    
+### Example 69
+                    Lyrics:
+                    无声哭泣的孩子
+独自迷信
+放逐不过是种意识
+丢了灵魂的心
+I have to run now
+我需要更改新的名字
+I have to run now
+我可以跨越荆棘
+不穿鞋子
+I have to run now
+等待试验灭自由的产子
+I wanna stop
+不再走
+
+                    Description:
+                    The song is a rock ballad with a slow tempo and a melancholic emotion. The emotional color of the melody is dark and minor-toned, with a passionate voice singing the main melody. The instruments used are the piano and the drums, creating a dramatic and intense atmosphere. The lyrics are about a person who is going through a tough time and is struggling to hold on to their soul. The song makes the listener feel sad and overwhelmed, with a sense of hopelessness and despair. Overall, the song has a negative valence and low energy.
+
+                    Prior Arousal: 7.73
+                    GroundTruth Arousal: 7.91
+                    Delta: 0.18
+                    
+### Example 70
+                    Lyrics:
+                    不觉 为何你从不责备
+反而是我脑的狼狈
+求你救救我 我太自由被剥夺
+请你帮助我掌握 早已有我的生活
+求你救救我 我太自由被剥夺
+请你听着我掌握 有了你我就不再怕错
+请你听着我掌握 有了你我就不再怕错
+
+                    Description:
+                    The song is an electronic dance music (EDM) track with a fast tempo and energetic mood. The vocal sample "救救我" is repeated throughout the song, creating a sense of urgency and desperation. The instrumental features a powerful beat, distorted synth melodies, and a loud and aggressive bassline. The overall sound is energetic and intense, making the listener feel exhilarated and engaged. The valence of the song is positive, while the arousal is high.
+
+                    Prior Arousal: 7.17
+                    GroundTruth Arousal: 7.89
+                    Delta: 0.72
+                    
+### Example 71
+                    Lyrics:
+                    知道为什么我会失去你
+闭上了眼睛
+回味这段爱情
+学习忘记
+能不哭泣
+我想不想一个人旅行
+而记忆里停止的
+
+                    Description:
+                    The song is a pop ballad with a slow tempo and a melancholic emotion. The piano plays the main melody, accompanied by the gentle strumming of the guitar. The singer's voice is emotional and heartfelt, expressing the sadness and longing in her words. The lyrics describe a lost love and the inability to forget, even after trying to move on. The overall effect of the song is one of sadness and reflection, making the listener feel melancholic and introspective.
+
+                    Prior Arousal: 3.28
+                    GroundTruth Arousal: 3.51
+                    Delta: 0.23
+                    
+### Example 72
+                    Lyrics:
+                    不怕我啰嗦 直到我难过
+陪着我沉默 设计做不只有我
+很多甜蜜小动作 日记吃饭没胃口
+吃咖吃甜心沦落 喜欢我朋友
+也会爱我的狗 都环保爱的球
+保护我像英雄 总是大方的杀我
+什么天日都记得 陪我减肥吃苹果
+帮我买过 阿罗
+
+                    Description:
+                    The song is an upbeat pop song with a high energy level and a tempo of 120 beats per minute. The emotional color of the melody is bright and uplifting, with a catchy and repetitive chorus that encourages listeners to sing along. The vocal expression is passionate and energetic, with the singer delivering the lyrics in a confident and enthusiastic manner. Overall, the song's positive emotion and high energy make it an ideal choice for dancing and cheering up, while the catchy chorus and repetitive melody make it a memorable and enjoyable experience.
+
+                    Prior Arousal: 7.12
+                    GroundTruth Arousal: 7.92
+                    Delta: 0.80
+                    
+### Example 73
+                    Lyrics:
+                    本身發生的事
+有可能在眼前現身
+是不是和別人一樣的平凡
+如果我們的靈魂告別身體
+打開那天堂大門
+有沒有什麼人在等
+把整個灰色城市改裝
+當作是我們的安全網
+這是
+
+                    Description:
+                    The song is a heavy metal performance with a strong, aggressive sound. The tempo is fast and the music is loud and energetic. The instruments are distorted electric guitars, heavy drums, and a bass guitar. The vocals are loud and passionate. The overall emotion of the song is aggressive and intense. It makes the listener feel excited and energized.
+
+                    Prior Arousal: 7.96
+                    GroundTruth Arousal: 8.15
+                    Delta: 0.19
+                    
+### Example 74
+                    Lyrics:
+                    这么难分难离
+不该相愁有几分长
+一分长一分难
+向来平添惆怅
+那泪眼望穿几个酒
+不该相愁有几分长
+
+                    Description:
+                    The song is a Chinese folk ballad. Its emotional tone is one of longing and sadness. The tempo is slow, with a melancholic melody and harmony. The vocal expression is gentle and heartfelt, with the singer's emotions pouring out through the lyrics. The song creates a sense of nostalgia and longing for the past, with the singer reflecting on the difficulties and hardships they have faced but also the joy and happiness they shared with their loved one. Overall, the song's emotional color is dark and minor-toned, creating a sense of sadness and longing.
+
+                    Prior Arousal: 3.41
+                    GroundTruth Arousal: 3.47
+                    Delta: 0.06
+                    
+### Example 75
+                    Lyrics:
+                    少年郎
+少年郎上学堂
+被诗文讨厌的黄颂
+眼目蒙天
+笔算盘
+出巧的琵琶响
+读破万卷书
+谁能比我强
+背不出
+漫漫想象
+不出旧的手掌
+炫古人头
+炫亮坠次
+古萤火重结梁
+梦想路很长
+不怕少年慌
+情无非央
+
+                    Description:
+                    The song is a traditional Chinese folk song performed by a female singer. The melody is simple and elegant, with a calm and soothing atmosphere. The tempo is moderate, and the vocal expression is gentle and expressive. The lyrics describe the joy and excitement of childhood memories, such as studying in a classroom, playing with friends, and exploring the world around them. The overall emotion of the song is positive and nostalgic, evoking feelings of joy, happiness, and longing for the past.
+
+                    Prior Arousal: 5.78
+                    GroundTruth Arousal: 5.49
+                    Delta: -0.29
+                    
+### Example 76
+                    Lyrics:
+                    I'm the only one, I gonna be the top one
+Gonna break your life, I gonna break your rule
+Never give up, never let go
+Got you love, got you love, come on
+我的心太过拥挤
+我快要不能呼吸
+因为一个两个你
+心里装的全是你
+我的爱太过专一
+我就是个死脑筋
+说定目标就是
+
+                    Description:
+                    The song is a high-energy rock song with a fast tempo and exciting rhythm. The emotional color of the melody is bright and uplifting, with a passionate voice singing the main lyrics. The instrumentation includes aggressive drums, distorted electric guitars, and a catchy bassline. The overall mood of the song is energetic and joyful. It is a song that would make the listener feel excited and motivated.
+
+                    Prior Arousal: 7.68
+                    GroundTruth Arousal: 8.19
+                    Delta: 0.51
+                    
+### Example 77
+                    Lyrics:
+                    哎呀 將我的心放裡口袋
+等待 早知道了
+詞曲 李宗盛
+
+                    Description:
+                    The song is a pop ballad with a female vocalist singing melodically. The tempo is slow with a piano accompaniment and a gentle flute melody. The emotional color of the song is sad and the vocal expression is emotional. The song makes the listener feel sad and longing.
+
+                    Prior Arousal: 4.28
+                    GroundTruth Arousal: 5.51
+                    Delta: 1.23
+                    
+### Example 78
+                    Lyrics:
+                    Merry Christmas Baby
+Merry Christmas
+Merry Christmas
+Merry Merry Christmas Baby
+红配日彩的年华
+圣诞树雪花朵朵
+白兔白兔幸福降落
+愿望在袜子里头
+这次我要大声的说
+快乐给我不要飞走
+来来来手要牵着手
+嘿
+
+                    Description:
+                    The song is a pop song with a cheerful and upbeat mood. The tempo is fast with a lively beat and a catchy melody. The emotional color of the melody is bright and uplifting, with a catchy hook and repetitive lyrics. The vocal expression is passionate and energetic, with the singer singing loudly and confidently. The song makes the listener feel happy and excited, with a sense of joy and happiness. Overall, the song is a fun and festive celebration of Christmas.
+
+                    Prior Arousal: 7.16
+                    GroundTruth Arousal: 7.27
+                    Delta: 0.10
+                    
+### Example 79
+                    Lyrics:
+                    Thank you.
+Thank you.
+
+                    Description:
+                    The song is an upbeat electronic dance music piece with a fast tempo and energetic feel. The melody is repetitive and catchy, with a strong bassline and synthesizer riffs. The vocal hooks are repetitive and catchy, adding to the overall upbeat and energetic feel of the song. The emotional color of the song is upbeat and energetic, with a sense of excitement and joy. Overall, the song is likely to evoke feelings of happiness and excitement in the listener.
+
+                    Prior Arousal: 7.47
+                    GroundTruth Arousal: 8.27
+                    Delta: 0.80
+                    
+### Example 80
+                    Lyrics:
+                    男人說好寂寞 忍不住立刻變溫柔
+女人啊 在寂寞 還是等他兩個鐘頭
+等待他 給你一個宇宙
+你醒了他的心
+就只有明月初過一切
+
+                    Description:
+                    The song is a ballad performed by a man's voice. The tempo is medium with a gentle acoustic guitar accompaniment and a soft female vocal backup. The emotional color of the melody is sad and the vocal expression is emotional. The lyrics describe a man's loneliness and longing for a woman's love. The lyrics express the feeling of emptiness and loneliness that a man feels when he is alone and the desire for a woman's love to fill that void. The overall emotion of the song is melancholic.
+
+                    Prior Arousal: 5.47
+                    GroundTruth Arousal: 5.71
+                    Delta: 0.24
+                    
