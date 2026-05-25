@@ -69,17 +69,17 @@ if __name__ == "__main__":
         lines = [seg["text"].strip() for seg in trans_result["segments"]]
         lyric = "\n".join(lines)
         #Build LLM prompt
-        with open("./TXT/DEMO_all_v.txt", "r", encoding="utf-8") as f:
+        with open("./utils/TXT/DEMO_all_v.txt", "r", encoding="utf-8") as f:
             DEMO_v = f.read()
-        with open("./TXT/DEMO_all_a.txt", "r", encoding="utf-8") as f:
+        with open("./utils/TXT/DEMO_all_a.txt", "r", encoding="utf-8") as f:
             DEMO_a = f.read()
         prompt_v, prompt_a = build_prompt_all_v(DEMO_v,base_va,lyric,desc), build_prompt_all_a(DEMO_a,base_va,lyric,desc)
     else:
         lyric = None
         #Build LLM prompt
-        with open("./TXT/DEMO_base_desc_v.txt", "r", encoding="utf-8") as f:
+        with open("./utils/TXT/DEMO_base_desc_v.txt", "r", encoding="utf-8") as f:
             DEMO_v = f.read()
-        with open("./TXT/DEMO_base_desc_a.txt", "r", encoding="utf-8") as f:
+        with open("./utils/TXT/DEMO_base_desc_a.txt", "r", encoding="utf-8") as f:
             DEMO_a = f.read()
         prompt_v, prompt_a = build_prompt_bd_v(DEMO_v,base_va,desc), build_prompt_bd_a(DEMO_a,base_va,desc)
     
