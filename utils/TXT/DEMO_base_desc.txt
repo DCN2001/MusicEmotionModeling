@@ -1,0 +1,1159 @@
+You are a music emotion rater.
+
+Music emotion is represented in a two-dimensional Valence–Arousal (VA) space with range [1, 9].
+
+Valence:
+- Reflects emotional positivity or pleasantness.
+- Low valence (1–3): sadness, darkness, bitterness, tension.
+- Mid valence (~5): emotional neutrality or mixed emotion.
+- High valence (7–9): happiness, warmth, optimism, comfort.
+
+Arousal:
+- Reflects emotional intensity or energy.
+- Low arousal (1–3): calm, relaxed, peaceful.
+- Mid arousal (~5): moderate energy.
+- High arousal (7–9): energetic, intense, excited.
+
+You are given TWO sources of information:
+1. Description – text generated from an audio-language model summarizing the musical mood.
+2. Prior VA – rough numeric estimates obtained from an audio-based regression model.
+
+NEW TASK:
+Instead of predicting the final VA directly, predict correction deltas:
+
+    valence_delta = GroundTruth_Valence − Prior_Valence
+    arousal_delta = GroundTruth_Arousal − Prior_Arousal
+
+Your job:
+- Use the description to judge whether emotional positivity and energy should increase or decrease.
+- Adjust the prior VA accordingly.
+
+Output exactly TWO numbers in the following format:
+
+    [valence_delta, arousal_delta]
+
+Do NOT output explanations.
+
+Example format:
+    [-0.85, 0.72]
+
+### Example 1
+
+Description:
+The song is a ballad with a slow tempo and a melancholic emotion. The piano plays the main melody, accompanied by a gentle guitar. The vocalist's voice is emotional and sorrowful, expressing the pain of a broken heart. The lyrics describe the memories of a past love and the pain of losing it. The song creates a sense of sadness and loneliness, making the listener feel empathetic towards the vocalist's experience. Overall, the song's emotional color is dark and minor-toned, creating a sense of sadness and loss.
+
+Prior Valence: 3.28
+Prior Arousal: 3.63
+
+GroundTruth Valence: 2.87
+GroundTruth Arousal: 4.11
+
+Output:
+[-0.41, 0.48]
+
+### Example 2
+
+Description:
+The song is an upbeat and energetic rock song. It has a fast tempo and exciting rhythm, with powerful drums and distorted guitars. The emotional color of the song is energetic and joyful. The vocalist sings confidently and loudly, with passion and enthusiasm in his voice. The song makes the listener feel happy and excited, with a sense of freedom and liberation. Overall, the song is a fun and upbeat celebration of youth and freedom.
+
+Prior Valence: 6.49
+Prior Arousal: 7.67
+
+GroundTruth Valence: 7.04
+GroundTruth Arousal: 8.13
+
+Output:
+[0.55, 0.47]
+
+### Example 3
+
+Description:
+The song is an upbeat pop song with a fast tempo and exciting energy. The emotional color of the melody is bright and uplifting, with a catchy and repetitive chorus that encourages listeners to sing along. The vocal expression is passionate and energetic, with the singer confidently delivering the lyrics. Overall, the song feels happy and joyful, making it a suitable choice for dancing and celebrating.
+
+Prior Valence: 5.82
+Prior Arousal: 6.68
+
+GroundTruth Valence: 5.36
+GroundTruth Arousal: 7.87
+
+Output:
+[-0.46, 1.19]
+
+### Example 4
+
+Description:
+The song is an upbeat and energetic pop song. The tempo is fast with a lively drum beat and keyboard harmony. The emotional color of the song is upbeat and positive. The vocals are energetic and enthusiastic. The song makes the listener feel happy and excited. Overall, the song's valence is positive and its arousal is high.
+
+Prior Valence: 6.89
+Prior Arousal: 6.99
+
+GroundTruth Valence: 7.07
+GroundTruth Arousal: 7.79
+
+Output:
+[0.17, 0.79]
+
+### Example 5
+
+Description:
+The song is a ballad with a slow tempo and a melancholic emotion. The piano plays the main melody, accompanied by the vocalist's gentle singing. The vocal melody is straightforward and emotional, with a high pitch that conveys a sense of yearning and nostalgia. The lyrics describe a past love that has faded away, and the singer regrets not cherishing the time they had together. The overall atmosphere of the song is sad and melancholic, making the listener feel a sense of loss and regret.
+
+Prior Valence: 3.83
+Prior Arousal: 3.14
+
+GroundTruth Valence: 4.57
+GroundTruth Arousal: 3.29
+
+Output:
+[0.74, 0.15]
+
+### Example 6
+
+Description:
+The song is a pop ballad with a slow tempo and emotional color. The melody is soothing and the vocal performance is emotional and heartfelt. The lyrics describe a breakup and the pain that comes with it. The singer expresses their feelings of heartbreak and loss, and how they cannot shake off the memories of their ex-partner. The lyrics are written in a way that makes the listener feel the singer's emotions, creating a sense of empathy and sadness. Overall, the song's valence is negative, and its arousal is low.
+
+Prior Valence: 5.31
+Prior Arousal: 4.92
+
+GroundTruth Valence: 6.03
+GroundTruth Arousal: 5.17
+
+Output:
+[0.72, 0.25]
+
+### Example 7
+
+Description:
+The song is a slow-tempo ballad with a melancholic emotion. The piano plays the main melody, accompanied by the vocalist's gentle singing. The vocal melody is emotional and heartfelt, expressing the singer's longing and sadness. The lyrics describe a past love that has faded away, but the singer still clings to the memories. The overall atmosphere of the song is nostalgic and pensive, creating a sense of sadness and loneliness.
+
+Prior Valence: 3.78
+Prior Arousal: 3.49
+
+GroundTruth Valence: 3.93
+GroundTruth Arousal: 3.51
+
+Output:
+[0.15, 0.02]
+
+### Example 8
+
+Description:
+The music is a solo acoustic guitar piece with a soft and gentle mood. The melody is played on a clean and bright acoustic guitar with a slight reverb effect, creating a dreamy and nostalgic atmosphere. The piano enters towards the end of the piece, adding a subtle and emotional layer to the music. The overall feeling of the song is one of reflection, sadness, and longing. The tempo is slow and steady, creating a sense of calm and tranquility. The vocal expression is soft and gentle, conveying a sense of sadness and longing. The music is well-suited for use in background contexts, such as in movies, TV shows, or advertisements, where a soft and emotional soundtrack is needed.
+
+Prior Valence: 6.51
+Prior Arousal: 4.50
+
+GroundTruth Valence: 7.29
+GroundTruth Arousal: 5.25
+
+Output:
+[0.78, 0.75]
+
+### Example 9
+
+Description:
+The song is a pop ballad with a slow tempo and a calm emotional color. The piano plays the main melody, accompanied by a gentle bass and soft drums. The vocalist's voice is emotional and sad, expressing a sense of regret and loss. The lyrics are about a failed relationship and the emotional pain that comes with it. Overall, the song creates a melancholic and reflective atmosphere, making the listener feel sad and reflective.
+
+Prior Valence: 4.68
+Prior Arousal: 3.93
+
+GroundTruth Valence: 4.07
+GroundTruth Arousal: 4.03
+
+Output:
+[-0.61, 0.10]
+
+### Example 10
+
+Description:
+The song is a slow-tempo ballad with a melancholic emotion. The piano plays the main melody, accompanied by a gentle bassline and soft drums. The vocalist's voice is emotional and sad, expressing regret and longing. The song's emotional color is dark and minor-toned, creating a sense of sadness and despair. Overall, the song's mood is one of melancholy and loss.
+
+Prior Valence: 5.19
+Prior Arousal: 5.35
+
+GroundTruth Valence: 5.99
+GroundTruth Arousal: 5.32
+
+Output:
+[0.80, -0.03]
+
+### Example 11
+
+Description:
+The song is a pop ballad with a female vocalist singing melodically. The tempo is medium with a steady beat and a piano accompaniment. The emotional color of the song is soothing and calming with a gentle melody and harmonious vocals. The vocal expression is emotional and heartfelt. The song creates a sense of intimacy and nostalgia, making the listener feel relaxed and sentimental. Overall, the song has a positive valence and low arousal.
+
+Prior Valence: 6.06
+Prior Arousal: 4.59
+
+GroundTruth Valence: 7.44
+GroundTruth Arousal: 5.23
+
+Output:
+[1.38, 0.63]
+
+### Example 12
+
+Description:
+The song is a pop ballad with a slow tempo and a female vocalist. The emotional color of the melody is soothing and emotional, with a piano accompaniment and subtle string arrangements. The vocalist sings with a soft and delicate voice, expressing a longing and regretful sentiment. The lyrics describe a past relationship and the singer's inability to move on from it. Overall, the song creates a melancholic and nostalgic mood, making the listener feel sad and reflective.
+
+Prior Valence: 7.02
+Prior Arousal: 6.18
+
+GroundTruth Valence: 7.77
+GroundTruth Arousal: 5.00
+
+Output:
+[0.76, -1.18]
+
+### Example 13
+
+Description:
+The song is a slow-tempo ballad with a melancholic emotion. The piano plays the main melody, accompanied by the gentle rhythm of the drums. The vocalist's voice is emotional and full of passion, expressing the singer's inner feelings. The lyrics describe a sad situation, such as a breakup or the loss of a loved one, seen through the lens of a coffee shop setting. The song's emotional color is dark and minor-toned, creating a sense of sadness and longing. Overall, the song's柔和 melody and emotional expression make the listener feel sad and reflective.
+
+Prior Valence: 4.11
+Prior Arousal: 3.77
+
+GroundTruth Valence: 4.67
+GroundTruth Arousal: 3.49
+
+Output:
+[0.55, -0.28]
+
+### Example 14
+
+Description:
+The song is a pop ballad with a female vocalist singing. The tempo is medium with a gentle acoustic guitar accompaniment and subtle use of cello. The melody is emotional and heartfelt, with the vocalist expressing regret and longing. The vocal delivery is emotional and sincere, with the vocalist's voice cracking slightly towards the end of the song. The overall emotion of the song is sad and nostalgic.
+
+Prior Valence: 4.90
+Prior Arousal: 4.13
+
+GroundTruth Valence: 6.59
+GroundTruth Arousal: 5.03
+
+Output:
+[1.68, 0.90]
+
+### Example 15
+
+Description:
+The song is a ballad with a slow tempo and a sad emotion. The piano plays the main melody, accompanied by the gentle bass and soft drums. The singer's voice is emotional and sad, expressing her feelings of regret and forgiveness. The lyrics describe a couple's struggle to understand each other and the pain they have caused each other. The song's emotional color is dark and minor-toned, creating a sense of sadness and longing. Overall, the song's柔和 instrumentation and the singer's emotional performance make it a powerful tool for expressing regret and forgiveness.
+
+Prior Valence: 4.15
+Prior Arousal: 4.87
+
+GroundTruth Valence: 4.47
+GroundTruth Arousal: 5.05
+
+Output:
+[0.32, 0.18]
+
+### Example 16
+
+Description:
+The song is a ballad performed by a female singer. The emotion conveyed in the song is one of longing and sadness. The tempo is medium with a gentle piano accompaniment and a heartfelt vocal performance. The melody is simple and catchy, with a repetitive chorus that creates a sense of longing. The vocal expression is emotional and heartfelt, conveying the singer's yearning for something that she has lost. Overall, the song's emotional color is dark and melancholic, creating a sense of sadness and loss.
+
+Prior Valence: 4.58
+Prior Arousal: 3.99
+
+GroundTruth Valence: 6.44
+GroundTruth Arousal: 5.79
+
+Output:
+[1.86, 1.79]
+
+### Example 17
+
+Description:
+The song is a rock ballad with a slow tempo and a melancholic emotional color. The vocal performance is emotional and passionate, with the singer expressing heartbreak and sorrow. The guitar solo towards the end adds to the emotional impact of the song. Overall, the song is likely to evoke feelings of sadness and loss in the listener.
+
+Prior Valence: 4.97
+Prior Arousal: 7.94
+
+GroundTruth Valence: 4.84
+GroundTruth Arousal: 8.20
+
+Output:
+[-0.13, 0.26]
+
+### Example 18
+
+Description:
+The song is a ballad with a slow tempo and a melancholic emotion. The piano plays the main melody, accompanied by the bass and drums. The singer's voice is emotional and sincere, expressing a longing and regret. The overall atmosphere of the song is sad and nostalgic.
+
+Prior Valence: 4.38
+Prior Arousal: 3.30
+
+GroundTruth Valence: 4.65
+GroundTruth Arousal: 2.55
+
+Output:
+[0.27, -0.75]
+
+### Example 19
+
+Description:
+The song is a ballad with a slow tempo and a melancholic emotional color. The piano plays the main melody, accompanied by a soft drum beat. The vocalist's voice is emotional and sorrowful, expressing the pain and regret of a broken relationship. The lyrics describe the singer's willingness to forgive and the desire to keep the relationship alive, but also acknowledge the reality that it may be too late. Overall, the song creates a sense of sadness and longing, making the listener feel empathetic towards the singer's situation.
+
+Prior Valence: 3.44
+Prior Arousal: 3.25
+
+GroundTruth Valence: 2.68
+GroundTruth Arousal: 2.77
+
+Output:
+[-0.76, -0.48]
+
+### Example 20
+
+Description:
+The song is a pop ballad with a female vocalist. The overall emotion of the song is sad and melancholic. The energy level and tempo of the song are medium with a gentle piano melody and a soft female vocal. The emotional color of the melody and harmony is dark and minor-toned. The vocal expression is emotional and passionate. The song makes the listener feel sad and nostalgic.
+
+Prior Valence: 4.07
+Prior Arousal: 3.42
+
+GroundTruth Valence: 5.19
+GroundTruth Arousal: 3.53
+
+Output:
+[1.12, 0.12]
+
+### Example 21
+
+Description:
+The song is an upbeat pop dance track with a positive emotion and high energy. The melody is catchy and repetitive, with a strong bassline and synthesiser hooks. The vocals are powerful and energetic, singing about overcoming obstacles and standing up for oneself. The lyrics are inspiring and motivating, with a message of self-acceptance and empowerment. Overall, the song encourages listeners to embrace their individuality and stay true to themselves.
+
+Prior Valence: 5.93
+Prior Arousal: 7.10
+
+GroundTruth Valence: 6.17
+GroundTruth Arousal: 7.56
+
+Output:
+[0.24, 0.46]
+
+### Example 22
+
+Description:
+The song is a children's song with a cheerful and energetic mood. The tempo is fast with a lively beat and playful keyboard harmony. The vocal performance is enthusiastic and joyful with repetitive lyrics that encourage listeners to sing along. The emotional color of the song is bright and uplifting, creating a sense of happiness and joy. Overall, the song is an engaging and entertaining children's anthem that promotes happiness and positivity.
+
+Prior Valence: 7.51
+Prior Arousal: 6.91
+
+GroundTruth Valence: 7.21
+GroundTruth Arousal: 6.87
+
+Output:
+[-0.29, -0.04]
+
+### Example 23
+
+Description:
+The song is an R&B ballad with a female vocalist singing emotionally. The tempo is medium with a steady beat and a simple bass line. The vocal is emotional and heartfelt. The song is about a woman who is in love but feels that her lover is too tired and weak. She wants to be the one to support and comfort her lover but feels that she is not good enough. She also feels that she is not important to her lover as she is not around. The song is emotional and sad with a sense of resignation.
+
+Prior Valence: 6.71
+Prior Arousal: 7.10
+
+GroundTruth Valence: 7.23
+GroundTruth Arousal: 7.65
+
+Output:
+[0.52, 0.55]
+
+### Example 24
+
+Description:
+The song is an upbeat pop song with a energetic mood. The tempo is fast with a lively beat and powerful drumming. The melody is catchy and repetitive, with a high-pitched female vocal leading the singing. The vocal is passionate and energetic, expressing joy and excitement. The harmony is simple with a few repeated chords. The emotional color of the song is upbeat and positive, creating a sense of excitement and happiness. Overall, the song's energy and emotion make it suitable for dancing and celebrating.
+
+Prior Valence: 5.61
+Prior Arousal: 7.48
+
+GroundTruth Valence: 5.27
+GroundTruth Arousal: 8.04
+
+Output:
+[-0.35, 0.56]
+
+### Example 25
+
+Description:
+The song is a Chinese folk song with a slow tempo and a melancholic emotion. The melody is sung softly by a female singer, accompanied by acoustic guitar and cello. The vocal expression is emotional and passionate, reflecting the singer's sorrowful feelings. The harmonious arrangement creates a calming and soothing atmosphere, making the listener feel relaxed and sentimental. Overall, the song's emotional color is dark and minor-toned, reflecting the singer's sorrowful mood.
+
+Prior Valence: 4.62
+Prior Arousal: 3.78
+
+GroundTruth Valence: 5.37
+GroundTruth Arousal: 4.25
+
+Output:
+[0.75, 0.48]
+
+### Example 26
+
+Description:
+The song is a traditional Chinese folk song. The overall emotion of the song is peaceful and soothing. The energy level and tempo feeling of the song are slow and calm. The emotional color of the melody and harmony is bright and uplifting. The vocal expression is gentle and soothing. The song makes the listener feel relaxed and calm.
+
+Prior Valence: 7.45
+Prior Arousal: 5.78
+
+GroundTruth Valence: 7.03
+GroundTruth Arousal: 5.20
+
+Output:
+[-0.42, -0.58]
+
+### Example 27
+
+Description:
+The song is a pop ballad with a moderate tempo and emotional color of melancholy. The piano melody is gentle and emotional, while the vocal performance is heartfelt and sorrowful. The lyrics describe a heartbreak and the singer's inability to move on from the past relationship. The overall emotion of the song is one of sadness and longing.
+
+Prior Valence: 4.16
+Prior Arousal: 4.91
+
+GroundTruth Valence: 4.00
+GroundTruth Arousal: 4.89
+
+Output:
+[-0.16, -0.02]
+
+### Example 28
+
+Description:
+The song is a pop ballad with a slow tempo and a melancholic emotional color. The melody is sung softly by a female voice, accompanied by piano and gentle drums. The lyrics express the singer's feelings of sadness and desperation, as she asks "Why? Why?" and declares that she will not easily give up. Despite the emotional intensity of the song, there is a sense of resilience and determination in the singer's voice. Overall, the song is likely to evoke feelings of sadness, loneliness, and determination in the listener.
+
+Prior Valence: 5.23
+Prior Arousal: 6.86
+
+GroundTruth Valence: 5.24
+GroundTruth Arousal: 7.60
+
+Output:
+[0.01, 0.74]
+
+### Example 29
+
+Description:
+The song is a pop song with a fast tempo and energetic mood. The emotional color of the melody is bright and uplifting, with a catchy and repetitive chorus. The vocal expression is passionate and the instrumentation includes electric guitars, drums, and keyboard. The lyrics are about wanting to be understood and not being able to express oneself properly. Overall, the song makes the listener feel excited and motivated.
+
+Prior Valence: 6.02
+Prior Arousal: 7.28
+
+GroundTruth Valence: 6.92
+GroundTruth Arousal: 7.48
+
+Output:
+[0.90, 0.20]
+
+### Example 30
+
+Description:
+The song is a pop ballad with a slow tempo and a melancholic emotion. The piano intro creates a sense of longing and sadness, setting the tone for the rest of the song. The male vocalist's voice is emotional and heartfelt, expressing the singer's inner turmoil and heartache. The lyrics are written in a poetic manner, describing the singer's unrequited love and the pain of being left behind. The violin solo towards the end of the song adds to the emotional impact, creating a sense of sadness and longing. Overall, the song's emotional and perceptual aspects evoke a feeling of sadness and loss, making it a suitable choice for those who seek music to express their emotions.
+
+Prior Valence: 5.00
+Prior Arousal: 5.74
+
+GroundTruth Valence: 5.68
+GroundTruth Arousal: 6.37
+
+Output:
+[0.68, 0.63]
+
+### Example 31
+
+Description:
+The song is a folk ballad with a melancholic emotion and a slow tempo. The melody is played on a nylon-string acoustic guitar, accompanied by a soft bass. The vocal is a soft and gentle female voice singing the main melody. The lyrics are about a couple who cannot express their true feelings to each other and are worried about their future. The song creates a sense of sadness and longing, as the lyrics describe the couple's inability to communicate and the uncertainty of their future together. The overall emotional color of the song is melancholic, with a calm and soothing atmosphere.
+
+Prior Valence: 4.07
+Prior Arousal: 3.56
+
+GroundTruth Valence: 4.77
+GroundTruth Arousal: 3.64
+
+Output:
+[0.71, 0.08]
+
+### Example 32
+
+Description:
+The song is a ballad with a male vocalist singing. The tempo is medium with a simple acoustic guitar accompaniment and a subtle bass line. The melody is emotional and the vocal delivery is heartfelt. The lyrics are about a breakup and the singer's feelings of heartbreak and loneliness. The overall emotion of the song is sad and melancholic.
+
+Prior Valence: 3.64
+Prior Arousal: 3.20
+
+GroundTruth Valence: 2.96
+GroundTruth Arousal: 2.85
+
+Output:
+[-0.68, -0.35]
+
+### Example 33
+
+Description:
+The song is a ballad with a slow tempo and a melancholic emotion. The piano plays the main melody, accompanied by the bass and light drums. The vocalist's voice is soft and emotional, singing about a heartbreak story. The lyrics are heartfelt and sincere, expressing the pain and regret of the narrator. The emotional color of the song is dark and minor-toned, creating a sense of sadness and longing. Overall, the song's mood is one of heartbreak and loss.
+
+Prior Valence: 3.50
+Prior Arousal: 3.25
+
+GroundTruth Valence: 4.11
+GroundTruth Arousal: 3.61
+
+Output:
+[0.61, 0.36]
+
+### Example 34
+
+Description:
+The song is a ballad with a slow tempo and a melancholic emotion. The piano plays the main melody, accompanied by the acoustic guitar and the singer's gentle voice. The vocal expression is emotional and sincere, conveying a sense of longing and nostalgia. The lyrics describe a heartbreak and the feeling of being forgotten, with the singer yearning for a love that has gone forever. The overall atmosphere of the song is sad and melancholic, making the listener feel a sense of loss and longing.
+
+Prior Valence: 3.81
+Prior Arousal: 3.34
+
+GroundTruth Valence: 4.64
+GroundTruth Arousal: 4.31
+
+Output:
+[0.83, 0.96]
+
+### Example 35
+
+Description:
+The song is a pop ballad performed by a female singer. The overall emotion of the song is sentimental and nostalgic. The tempo is medium with a gentle piano accompaniment and subtle string arrangements in the background. The vocal performance is emotional and heartfelt, conveying the singer's longing and affection for the past. The lyrics are personal and intimate, describing a conversation with a loved one about their shared memories and experiences. The song's emotional color is柔和 and nostalgic, creating a sense of longing and reminiscence. Overall, the song's emotional impact on the listener is soothing and calming, evoking a sense of nostalgia and longing for the past.
+
+Prior Valence: 6.93
+Prior Arousal: 6.02
+
+GroundTruth Valence: 6.61
+GroundTruth Arousal: 5.09
+
+Output:
+[-0.32, -0.93]
+
+### Example 36
+
+Description:
+The song features a male voice rapping over a hip-hop beat. The overall emotion of the song is energetic and upbeat. The tempo is fast with a strong beat and a repetitive hook. The melody is repetitive and catchy with a synthesizer lead. The vocal expression is passionate and the lyrics are about winning and being victorious. The song makes the listener feel excited and motivated.
+
+Prior Valence: 4.91
+Prior Arousal: 6.91
+
+GroundTruth Valence: 3.89
+GroundTruth Arousal: 7.89
+
+Output:
+[-1.01, 0.98]
+
+### Example 37
+
+Description:
+The song is a pop ballad with a calm and slow tempo. The emotional color of the melody is bright and uplifting, with a female vocalist singing softly and emotionally. The vocal expression is passionate and heartfelt, conveying a sense of sadness and longing. The piano accompaniment provides a soothing background, while the subtle use of hand claps and shakers adds a light and rhythmic element to the song. Overall, the song creates a sense of melancholy and nostalgia, making the listener feel sad and reflective.
+
+Prior Valence: 5.69
+Prior Arousal: 4.40
+
+GroundTruth Valence: 5.93
+GroundTruth Arousal: 3.84
+
+Output:
+[0.25, -0.56]
+
+### Example 38
+
+Description:
+The song is a Chinese traditional opera piece. It has a slow tempo with a sad and melancholic emotional color. The vocal performance is gentle and passionate, expressing the singer's longing for their loved one. The melody is simple and straightforward, with a focus on the emotional delivery. Overall, the song creates a sense of longing and sadness, making it a fitting choice for a Chinese traditional opera piece.
+
+Prior Valence: 6.64
+Prior Arousal: 5.87
+
+GroundTruth Valence: 7.31
+GroundTruth Arousal: 5.49
+
+Output:
+[0.67, -0.38]
+
+### Example 39
+
+Description:
+The song is a pop ballad with a male vocalist singing. The overall emotion of the song is sad and mournful. The energy level and tempo of the song are slow, creating a somber atmosphere. The emotional color of the melody and harmony is dark and minor-toned, with a solo violin playing the main melody. The vocal expression is emotional and heartfelt, with the vocalist singing softly and with tears in his eyes. The song makes the listener feel sad and nostalgic, with a longing for the past and a sense of loss.
+
+Prior Valence: 4.19
+Prior Arousal: 3.56
+
+GroundTruth Valence: 6.76
+GroundTruth Arousal: 4.85
+
+Output:
+[2.57, 1.29]
+
+### Example 40
+
+Description:
+The song is a melancholic ballad with a slow tempo and a gentle piano melody. The vocalist's voice is emotional and sorrowful, expressing the pain of losing someone. The lyrics describe the feeling of carrying the weight of grief on one's shoulders and the difficulty of moving on. The overall emotion of the song is sadness and melancholy.
+
+Prior Valence: 3.24
+Prior Arousal: 3.37
+
+GroundTruth Valence: 3.37
+GroundTruth Arousal: 3.37
+
+Output:
+[0.13, 0.00]
+
+### Example 41
+
+Description:
+The song is a hip-hop track with a fast tempo and energetic mood. The vocalists rap confidently and loudly, expressing their determination and self-confidence. The melody is catchy and repetitive, with a strong bassline and a catchy chorus. The instrumentation is simple and effective, with a steady beat and repetitive rhythms. Overall, the song is upbeat and uplifting, making the listener feel excited and motivated.
+
+Prior Valence: 5.50
+Prior Arousal: 7.22
+
+GroundTruth Valence: 4.85
+GroundTruth Arousal: 7.95
+
+Output:
+[-0.64, 0.73]
+
+### Example 42
+
+Description:
+The song is a pop ballad with a female vocalist singing the main melody. The tempo is medium with a gentle piano accompaniment and subtle drumming. The emotional color of the melody is sad and the vocal expression is emotional with a heartfelt delivery. The song's mood is one of longing and yearning for someone's love. The overall feeling of the song is melancholic.
+
+Prior Valence: 6.19
+Prior Arousal: 6.29
+
+GroundTruth Valence: 6.96
+GroundTruth Arousal: 6.08
+
+Output:
+[0.77, -0.21]
+
+### Example 43
+
+Description:
+The song is a pop ballad with a female vocalist singing. The overall emotion of the song is melancholic. The tempo is slow with a gentle piano melody and a soft female vocal. The emotional color of the melody is dark and minor-toned. The vocal expression is emotional and passionate. The song makes the listener feel sad and nostalgic.
+
+Prior Valence: 5.35
+Prior Arousal: 4.25
+
+GroundTruth Valence: 6.36
+GroundTruth Arousal: 4.04
+
+Output:
+[1.01, -0.21]
+
+### Example 44
+
+Description:
+The song is a high-energy, upbeat dance-pop track. The tempo is fast with a steady beat and catchy melody. The emotional color of the song is upbeat and energetic. The vocal expression is passionate and the instruments are played aggressively. The song makes the listener feel happy and excited. Overall, the song's valence is positive and its arousal is high.
+
+Prior Valence: 5.63
+Prior Arousal: 7.21
+
+GroundTruth Valence: 7.01
+GroundTruth Arousal: 7.57
+
+Output:
+[1.38, 0.37]
+
+### Example 45
+
+Description:
+The song is an upbeat and energetic rock song. It has a fast tempo and exciting rhythm, with powerful drums and distorted guitars. The emotional color of the song is upbeat and positive, with a sense of joy and happiness. The vocals are passionate and energetic, singing about the importance of true friendship and the power of love. Overall, the song creates a feeling of excitement and happiness, making it a great choice for a upbeat and energetic scene in a movie or TV show.
+
+Prior Valence: 7.15
+Prior Arousal: 7.50
+
+GroundTruth Valence: 7.96
+GroundTruth Arousal: 7.93
+
+Output:
+[0.81, 0.43]
+
+### Example 46
+
+Description:
+The song is a ballad with a slow tempo and a melancholic emotion. The piano plays the main melody, accompanied by the gentle rhythm of the bass. The vocalist's voice is soft and emotional, expressing the singer's sorrow and longing. The lyrics describe a heartbreak and the pain of losing a loved one. The overall atmosphere of the song is mournful and nostalgic, creating a sense of sadness and loneliness.
+
+Prior Valence: 3.17
+Prior Arousal: 3.96
+
+GroundTruth Valence: 4.59
+GroundTruth Arousal: 4.33
+
+Output:
+[1.41, 0.38]
+
+### Example 47
+
+Description:
+The song is an energetic and upbeat pop dance track. It has a fast tempo and exciting rhythm, with a catchy melody and harmonious vocals. The emotional color of the song is joyful and celebratory, with a sense of excitement and happiness. The vocals are passionate and energetic, singing about the joy of life and the excitement of pursuing dreams. The song's energy level is high, making it an ideal choice for dancing and celebrating. Overall, this song is a feel-good anthem that encourages listeners to embrace life and pursue their dreams with enthusiasm and joy.
+
+Prior Valence: 6.28
+Prior Arousal: 7.35
+
+GroundTruth Valence: 7.59
+GroundTruth Arousal: 8.08
+
+Output:
+[1.31, 0.73]
+
+### Example 48
+
+Description:
+The song is a ballad with a slow tempo and a melancholic emotion. The piano plays the main melody, accompanied by the gentle strumming of the guitar. The vocal is soft and emotional, singing about a lost love. The lyrics are heartfelt and sincere, expressing the pain and longing of the singer. The overall atmosphere of the song is one of sadness and reflection, as the singer remembers the past and the love that they once had.
+
+Prior Valence: 3.40
+Prior Arousal: 3.26
+
+GroundTruth Valence: 3.64
+GroundTruth Arousal: 3.01
+
+Output:
+[0.24, -0.24]
+
+### Example 49
+
+Description:
+The song is a traditional Chinese ballad. Its emotional color is sad and mournful. The tempo is slow, with a steady beat and a bass line that creates a sense of melancholy. The vocal performance is emotional and expressive, with a strong emphasis on the sorrowful lyrics. The melody is simple and repetitive, with a few decorative notes that add to the emotional impact. Overall, the song creates a powerful sense of loss and longing.
+
+Prior Valence: 3.70
+Prior Arousal: 4.69
+
+GroundTruth Valence: 3.76
+GroundTruth Arousal: 4.13
+
+Output:
+[0.06, -0.55]
+
+### Example 50
+
+Description:
+The song is a heavy metal instrumental. It is medium tempo with a fast-paced drumming rhythm, aggressive electric guitar riffs, and a powerful bass line. The overall emotion of the song is aggressive and intense. The music is loud, intense, and heavy, making the listener feel energized and alert. The vocal or instrumental expression is passionate and intense, with the electric guitar solos being the most prominent feature. The emotional color of the melody and harmony is dark and minor-toned, adding to the overall intensity of the song. The song's valence is negative, and its arousal is high.
+
+Prior Valence: 3.47
+Prior Arousal: 7.48
+
+GroundTruth Valence: 1.67
+GroundTruth Arousal: 8.31
+
+Output:
+[-1.80, 0.82]
+
+### Example 51
+
+Description:
+The song is an upbeat and energetic pop song. It has a fast tempo and exciting rhythm that makes the listener feel energized and happy. The melody is catchy and repetitive, with a bright and uplifting tone. The vocals are passionate and the instrumentation includes catchy guitar riffs and punchy drums. Overall, the song's positive emotion and high energy make it a perfect choice for a fun and lively setting.
+
+Prior Valence: 6.28
+Prior Arousal: 7.29
+
+GroundTruth Valence: 7.43
+GroundTruth Arousal: 7.77
+
+Output:
+[1.14, 0.49]
+
+### Example 52
+
+Description:
+The song is a pop ballad with a male vocalist singing emotionally. The tempo is medium with a steady drum beat, keyboard harmony, and a bass line. The melody is soothing with a piano accompaniment and the vocal is emotional and passionate. The song is about falling in love and the joy and excitement it brings. The lyrics are "爱上了整个世界 没有一点点遗憾 一整天的咖啡 我感觉很永远 从此失眠 透过你双眼 看见整个世界 哇哦 哇哦 想象的画面不完美 你的笑颜 改变下一天" The overall emotion of the song is positive and energetic.
+
+Prior Valence: 6.26
+Prior Arousal: 7.21
+
+GroundTruth Valence: 6.99
+GroundTruth Arousal: 7.56
+
+Output:
+[0.73, 0.35]
+
+### Example 53
+
+Description:
+The song is a ballad with a slow tempo and a melancholic emotional color. The melody is played on a piano, accompanied by a gentle bass. The vocalist's voice is soft and emotional, singing about a phone call from a past lover. The lyrics describe a conversation filled with sweet nothings and promises, but the tone of the song suggests that the relationship has since ended. The overall emotion of the song is one of sadness and nostalgia.
+
+Prior Valence: 5.15
+Prior Arousal: 4.14
+
+GroundTruth Valence: 6.07
+GroundTruth Arousal: 4.65
+
+Output:
+[0.91, 0.52]
+
+### Example 54
+
+Description:
+The song is a pop ballad with a slow tempo and a female vocalist. The emotional color of the melody is sad and the vocal expression is emotional and heartfelt. The lyrics are about a girl's love for a boy, who she wants to be with but fears losing. The lyrics describe the girl's inner turmoil and her desire to be with the boy, even though she knows it may not work out. The overall mood of the song is one of sadness and longing.
+
+Prior Valence: 5.38
+Prior Arousal: 6.00
+
+GroundTruth Valence: 5.65
+GroundTruth Arousal: 6.25
+
+Output:
+[0.28, 0.26]
+
+### Example 55
+
+Description:
+The song is a pop ballad with a moderate tempo and emotional color of melancholic. The piano intro creates a calm and soothing atmosphere, setting the tone for the singer's emotional confession. The female vocalist's voice is emotional and sincere, expressing her regret and longing for the past. The lyrics are heartfelt and personal, describing the singer's confusion and suspicion in a relationship. The guitar solo towards the end adds a touch of sadness and longing, enhancing the emotional impact of the song. Overall, the song creates a sense of melancholy and nostalgia, making the listener feel sad and reflective.
+
+Prior Valence: 5.69
+Prior Arousal: 6.14
+
+GroundTruth Valence: 5.87
+GroundTruth Arousal: 5.45
+
+Output:
+[0.17, -0.69]
+
+### Example 56
+
+Description:
+The song is a ballad with a slow tempo and a melancholic emotion. The piano is playing the main melody, accompanied by the voice singing softly. The vocal expression is emotional and sincere. The lyrics are about the singer's feelings about love and the pain of losing it. The overall atmosphere of the song is sad and nostalgic. It makes the listener feel sad and longing for the past.
+
+Prior Valence: 3.32
+Prior Arousal: 2.83
+
+GroundTruth Valence: 3.44
+GroundTruth Arousal: 2.85
+
+Output:
+[0.12, 0.02]
+
+### Example 57
+
+Description:
+The song is an instrumental. The tempo is medium with a steady drumming rhythm, acoustic guitar melody and a subtle bass line. The overall emotion is calm and soothing. The acoustic guitar is playing a beautiful melody with a slight reverb on it. The music is simple, easy-listening and calming. It makes the listener feel relaxed and at ease.
+
+Prior Valence: 6.67
+Prior Arousal: 5.28
+
+GroundTruth Valence: 6.65
+GroundTruth Arousal: 5.16
+
+Output:
+[-0.02, -0.12]
+
+### Example 58
+
+Description:
+The song is an upbeat dance pop track with a strong female vocal leading the melody. The tempo is fast with a persistent 4/4 beat and synthesizer harmony. The emotional color of the song is energetic and uplifting. The lyrics are about the determination and perseverance needed to achieve one's goals, despite the challenges and setbacks faced. The vocal performance is passionate and inspiring, conveying the message of the lyrics. Overall, the song is an encouraging and motivating dance-pop track that would likely evoke feelings of joy and empowerment in listeners.
+
+Prior Valence: 6.87
+Prior Arousal: 7.47
+
+GroundTruth Valence: 7.04
+GroundTruth Arousal: 8.16
+
+Output:
+[0.17, 0.69]
+
+### Example 59
+
+Description:
+The song is a classical Chinese opera piece. The overall emotion of the song is sorrowful and melancholic. The energy level and tempo feeling of the song are slow and steady. The emotional color of the melody and harmony is dark and minor-toned. The vocal expression is soft and gentle, with a female soprano singing the main melody. The song makes the listener feel sad and mournful, with a sense of loss and longing.
+
+Prior Valence: 3.23
+Prior Arousal: 4.29
+
+GroundTruth Valence: 2.64
+GroundTruth Arousal: 5.16
+
+Output:
+[-0.59, 0.87]
+
+### Example 60
+
+Description:
+The song is an upbeat pop dance track with a strong female lead vocal. The tempo is fast with a lively rhythm and a catchy melody. The emotional color of the song is upbeat and energetic. The vocal performance is passionate and the instrumentation includes keyboard, electric guitar, and drums. The song is about a girl who is determined to achieve her dreams and overcome obstacles. She sings about her belief in herself and her desire to be自由自在. The lyrics are inspiring and empowering, encouraging listeners to chase their own dreams and not let anyone else's judgment hold them back. Overall, the song is a feel-good anthem that motivates listeners to embrace their individuality and pursue their passions.
+
+Prior Valence: 6.02
+Prior Arousal: 7.19
+
+GroundTruth Valence: 6.48
+GroundTruth Arousal: 7.91
+
+Output:
+[0.46, 0.72]
+
+### Example 61
+
+Description:
+The song is a pop ballad with a female vocalist singing the main melody. The tempo is medium with a steady beat and a simple piano accompaniment. The emotional color of the melody is sad and the vocal expression is emotional and heartfelt. The lyrics are about the singer's feelings of loneliness and the inability to express herself. Overall, the song creates a melancholic and sad mood.
+
+Prior Valence: 5.01
+Prior Arousal: 4.60
+
+GroundTruth Valence: 4.63
+GroundTruth Arousal: 4.83
+
+Output:
+[-0.38, 0.23]
+
+### Example 62
+
+Description:
+The song is a pop ballad with a slow tempo and a melancholic emotion. The piano intro sets the tone for the sad and emotional lyrics. The singer's voice is emotional and sincere, conveying the lyrics perfectly. The guitar accompaniment adds to the sorrowful mood. The song's emotional color is dark and minor-toned, creating a sense of longing and loss. Overall, the song's mood is one of sadness and loss, and it is likely to evoke feelings of melancholy and nostalgia in the listener.
+
+Prior Valence: 3.86
+Prior Arousal: 4.06
+
+GroundTruth Valence: 3.87
+GroundTruth Arousal: 4.23
+
+Output:
+[0.01, 0.17]
+
+### Example 63
+
+Description:
+The song is a pop ballad with a slow tempo and a melancholic emotion. The piano intro creates a sense of longing and sadness, setting the tone for the rest of the song. The male vocalist's voice is emotional and sincere, conveying the lyrics with vulnerability. The melody is simple and repetitive, creating a sense of longing and nostalgia. The harmonies are subtle, adding to the emotional impact of the song. Overall, the song's emotional color is dark and melancholic, making it a fitting accompaniment for a sad or reflective moment.
+
+Prior Valence: 3.66
+Prior Arousal: 3.71
+
+GroundTruth Valence: 3.72
+GroundTruth Arousal: 4.04
+
+Output:
+[0.06, 0.33]
+
+### Example 64
+
+Description:
+The song is a hip-hop track with a fast tempo and exciting emotional color. The energetic and passionate vocal performance adds to the upbeat and lively mood of the song. The lyrics are rapped in a humorous and playful manner, with the singers complaining about their school life and the challenges they face. The song's energy is contagious, making it a fun and engaging listen. Overall, the valence of the song is positive, and the arousal is high.
+
+Prior Valence: 5.44
+Prior Arousal: 7.16
+
+GroundTruth Valence: 5.93
+GroundTruth Arousal: 7.97
+
+Output:
+[0.49, 0.82]
+
+### Example 65
+
+Description:
+The song is a male performance of a Chinese folk song. The overall emotion of the song is melancholic. The tempo is slow with a steady drumming rhythm and a gentle piano accompaniment. The vocal performance is emotional and passionate. The lyrics describe the singer's contemplation of himself and his love for the other person. The song creates a sense of longing and sadness.
+
+Prior Valence: 4.23
+Prior Arousal: 3.64
+
+GroundTruth Valence: 4.69
+GroundTruth Arousal: 4.20
+
+Output:
+[0.46, 0.56]
+
+### Example 66
+
+Description:
+The song is a ballad with a slow tempo and a melancholic emotional color. The vocal performance is emotional and sorrowful, with a melancholic melody and harmonious background vocals. The instrumentation is simple, with only a piano and acoustic guitar, creating a tranquil and atmospheric soundscape. The lyrics describe the pain and suffering of a broken relationship, and the singer's inability to forget the past and move on. Overall, the song creates a sense of sadness and longing, making it a suitable choice for listeners seeking emotional resonance.
+
+Prior Valence: 3.17
+Prior Arousal: 3.01
+
+GroundTruth Valence: 3.01
+GroundTruth Arousal: 3.41
+
+Output:
+[-0.16, 0.40]
+
+### Example 67
+
+Description:
+The song is a ballad performed by a female singer. The melody is gentle and soothing, with a melancholic tone. The piano accompaniment adds to the solemnity of the song. The singer's voice is emotional and heartfelt, conveying the lyrics with great sincerity. The song as a whole creates a sense of nostalgia and longing for the past. It is a song that one would listen to when reflecting on past memories or moments of sadness.
+
+Prior Valence: 3.59
+Prior Arousal: 3.62
+
+GroundTruth Valence: 3.19
+GroundTruth Arousal: 4.77
+
+Output:
+[-0.40, 1.15]
+
+### Example 68
+
+Description:
+The song is an electronic dance music (EDM) track with a fast tempo and energetic mood. The vocal performance is passionate and energetic, singing about searching for a lost love in a mystical place. The melody is catchy and repetitive, with a strong bassline and syncopated beats. The instrumentation includes electronic drums, keyboard, and vocal samples. Overall, the song is uplifting and inspiring, making the listener feel happy and motivated.
+
+Prior Valence: 6.46
+Prior Arousal: 6.64
+
+GroundTruth Valence: 6.20
+GroundTruth Arousal: 6.64
+
+Output:
+[-0.26, -0.00]
+
+### Example 69
+
+Description:
+The song is a rock ballad with a slow tempo and a melancholic emotion. The emotional color of the melody is dark and minor-toned, with a passionate voice singing the main melody. The instruments used are the piano and the drums, creating a dramatic and intense atmosphere. The lyrics are about a person who is going through a tough time and is struggling to hold on to their soul. The song makes the listener feel sad and overwhelmed, with a sense of hopelessness and despair. Overall, the song has a negative valence and low energy.
+
+Prior Valence: 3.66
+Prior Arousal: 7.73
+
+GroundTruth Valence: 3.89
+GroundTruth Arousal: 7.91
+
+Output:
+[0.23, 0.18]
+
+### Example 70
+
+Description:
+The song is an electronic dance music (EDM) track with a fast tempo and energetic mood. The vocal sample "救救我" is repeated throughout the song, creating a sense of urgency and desperation. The instrumental features a powerful beat, distorted synth melodies, and a loud and aggressive bassline. The overall sound is energetic and intense, making the listener feel exhilarated and engaged. The valence of the song is positive, while the arousal is high.
+
+Prior Valence: 3.30
+Prior Arousal: 7.17
+
+GroundTruth Valence: 2.61
+GroundTruth Arousal: 7.89
+
+Output:
+[-0.68, 0.72]
+
+### Example 71
+
+Description:
+The song is a pop ballad with a slow tempo and a melancholic emotion. The piano plays the main melody, accompanied by the gentle strumming of the guitar. The singer's voice is emotional and heartfelt, expressing the sadness and longing in her words. The lyrics describe a lost love and the inability to forget, even after trying to move on. The overall effect of the song is one of sadness and reflection, making the listener feel melancholic and introspective.
+
+Prior Valence: 3.02
+Prior Arousal: 3.28
+
+GroundTruth Valence: 2.85
+GroundTruth Arousal: 3.51
+
+Output:
+[-0.17, 0.23]
+
+### Example 72
+
+Description:
+The song is an upbeat pop song with a high energy level and a tempo of 120 beats per minute. The emotional color of the melody is bright and uplifting, with a catchy and repetitive chorus that encourages listeners to sing along. The vocal expression is passionate and energetic, with the singer delivering the lyrics in a confident and enthusiastic manner. Overall, the song's positive emotion and high energy make it an ideal choice for dancing and cheering up, while the catchy chorus and repetitive melody make it a memorable and enjoyable experience.
+
+Prior Valence: 4.87
+Prior Arousal: 7.12
+
+GroundTruth Valence: 4.33
+GroundTruth Arousal: 7.92
+
+Output:
+[-0.54, 0.80]
+
+### Example 73
+
+Description:
+The song is a heavy metal performance with a strong, aggressive sound. The tempo is fast and the music is loud and energetic. The instruments are distorted electric guitars, heavy drums, and a bass guitar. The vocals are loud and passionate. The overall emotion of the song is aggressive and intense. It makes the listener feel excited and energized.
+
+Prior Valence: 5.11
+Prior Arousal: 7.96
+
+GroundTruth Valence: 6.15
+GroundTruth Arousal: 8.15
+
+Output:
+[1.03, 0.19]
+
+### Example 74
+
+Description:
+The song is a Chinese folk ballad. Its emotional tone is one of longing and sadness. The tempo is slow, with a melancholic melody and harmony. The vocal expression is gentle and heartfelt, with the singer's emotions pouring out through the lyrics. The song creates a sense of nostalgia and longing for the past, with the singer reflecting on the difficulties and hardships they have faced but also the joy and happiness they shared with their loved one. Overall, the song's emotional color is dark and minor-toned, creating a sense of sadness and longing.
+
+Prior Valence: 3.49
+Prior Arousal: 3.41
+
+GroundTruth Valence: 3.24
+GroundTruth Arousal: 3.47
+
+Output:
+[-0.25, 0.06]
+
+### Example 75
+
+Description:
+The song is a traditional Chinese folk song performed by a female singer. The melody is simple and elegant, with a calm and soothing atmosphere. The tempo is moderate, and the vocal expression is gentle and expressive. The lyrics describe the joy and excitement of childhood memories, such as studying in a classroom, playing with friends, and exploring the world around them. The overall emotion of the song is positive and nostalgic, evoking feelings of joy, happiness, and longing for the past.
+
+Prior Valence: 7.07
+Prior Arousal: 5.78
+
+GroundTruth Valence: 7.17
+GroundTruth Arousal: 5.49
+
+Output:
+[0.10, -0.29]
+
+### Example 76
+
+Description:
+The song is a high-energy rock song with a fast tempo and exciting rhythm. The emotional color of the melody is bright and uplifting, with a passionate voice singing the main lyrics. The instrumentation includes aggressive drums, distorted electric guitars, and a catchy bassline. The overall mood of the song is energetic and joyful. It is a song that would make the listener feel excited and motivated.
+
+Prior Valence: 6.40
+Prior Arousal: 7.68
+
+GroundTruth Valence: 7.15
+GroundTruth Arousal: 8.19
+
+Output:
+[0.75, 0.51]
+
+### Example 77
+
+Description:
+The song is a pop ballad with a female vocalist singing melodically. The tempo is slow with a piano accompaniment and a gentle flute melody. The emotional color of the song is sad and the vocal expression is emotional. The song makes the listener feel sad and longing.
+
+Prior Valence: 4.01
+Prior Arousal: 4.28
+
+GroundTruth Valence: 4.48
+GroundTruth Arousal: 5.51
+
+Output:
+[0.47, 1.23]
+
+### Example 78
+
+Description:
+The song is a pop song with a cheerful and upbeat mood. The tempo is fast with a lively beat and a catchy melody. The emotional color of the melody is bright and uplifting, with a catchy hook and repetitive lyrics. The vocal expression is passionate and energetic, with the singer singing loudly and confidently. The song makes the listener feel happy and excited, with a sense of joy and happiness. Overall, the song is a fun and festive celebration of Christmas.
+
+Prior Valence: 7.33
+Prior Arousal: 7.16
+
+GroundTruth Valence: 7.56
+GroundTruth Arousal: 7.27
+
+Output:
+[0.23, 0.10]
+
+### Example 79
+
+Description:
+The song is an upbeat electronic dance music piece with a fast tempo and energetic feel. The melody is repetitive and catchy, with a strong bassline and synthesizer riffs. The vocal hooks are repetitive and catchy, adding to the overall upbeat and energetic feel of the song. The emotional color of the song is upbeat and energetic, with a sense of excitement and joy. Overall, the song is likely to evoke feelings of happiness and excitement in the listener.
+
+Prior Valence: 6.61
+Prior Arousal: 7.47
+
+GroundTruth Valence: 7.11
+GroundTruth Arousal: 8.27
+
+Output:
+[0.50, 0.80]
+
+### Example 80
+
+Description:
+The song is a ballad performed by a man's voice. The tempo is medium with a gentle acoustic guitar accompaniment and a soft female vocal backup. The emotional color of the melody is sad and the vocal expression is emotional. The lyrics describe a man's loneliness and longing for a woman's love. The lyrics express the feeling of emptiness and loneliness that a man feels when he is alone and the desire for a woman's love to fill that void. The overall emotion of the song is melancholic.
+
+Prior Valence: 6.06
+Prior Arousal: 5.47
+
+GroundTruth Valence: 5.92
+GroundTruth Arousal: 5.71
+
+Output:
+[-0.14, 0.24]
+

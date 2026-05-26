@@ -159,6 +159,95 @@ def build_demo_all_a(examples,demo_path):
     with open(demo_path, "w", encoding="utf-8") as f:
         f.write(DEMO_prompt)
 
+def build_demo_all(examples, demo_path):
+    header = textwrap.dedent("""\
+        You are a music emotion rater.
+
+        Music emotion is represented in a two-dimensional Valence–Arousal (VA) space with range [1, 9].
+
+        Valence:
+        - Reflects emotional positivity or pleasantness.
+        - Low valence (1–3): sadness, darkness, bitterness, tension.
+        - Mid valence (~5): emotional neutrality, ambiguity, mixed feelings, reflective tone.
+        - High valence (7–9): happiness, warmth, optimism, comfort, tenderness, serenity.
+
+        Arousal:
+        - Reflects emotional intensity or energy.
+        - Low arousal (1–3): calm, relaxed, peaceful, sleepy, gentle.
+        - Mid arousal (~5): moderate emotional activity, balanced energy.
+        - High arousal (7–9): energetic, intense, excited, aggressive, tense.
+
+        You are given THREE complementary sources of information:
+        1. Lyrics – semantic and narrative emotional cues.
+        2. Description – text generated from an audio-language model summarizing the musical mood.
+        3. Prior VA – rough numeric estimates obtained from an audio-based regression model.
+
+        NEW TASK:
+        Instead of predicting the final VA directly, predict correction deltas:
+
+            valence_delta = GroundTruth_Valence − Prior_Valence
+            arousal_delta = GroundTruth_Arousal − Prior_Arousal
+
+        Your job:
+        - Integrate lyrics + description + prior.
+        - Infer how much the prior VA should be adjusted.
+        - Output ONLY the correction deltas.
+
+        Output format:
+            [valence_delta, arousal_delta]
+
+        Example:
+            [-0.85, 0.72]
+
+        Do NOT output explanations.
+    """)
+
+    blocks = []
+
+    for i, ex in enumerate(examples, 1):
+
+        pv = float(ex["prior_va"][0])
+        pa = float(ex["prior_va"][1])
+
+        gv = float(ex["gt_va"][0])
+        ga = float(ex["gt_va"][1])
+
+        delta_v = gv - pv
+        delta_a = ga - pa
+
+        lyr = ex["lyrics"].strip()
+
+        desc = ex.get("descriptions", None)
+
+        if desc:
+
+            block = f"""### Example {i}
+
+Lyrics:
+{lyr}
+
+Description:
+{desc.strip()}
+
+Prior Valence: {pv:.2f}
+Prior Arousal: {pa:.2f}
+
+GroundTruth Valence: {gv:.2f}
+GroundTruth Arousal: {ga:.2f}
+
+Output:
+[{delta_v:.2f}, {delta_a:.2f}]
+"""
+
+            blocks.append(block)
+
+    examples_text = "\n".join(blocks)
+
+    DEMO_prompt = header + "\n" + examples_text + "\n"
+
+    with open(demo_path, "w", encoding="utf-8") as f:
+        f.write(DEMO_prompt)
+
 def build_demo_base_desc_v(examples,demo_path):
     #Header
     header = textwrap.dedent("""\
@@ -267,6 +356,89 @@ def build_demo_base_desc_a(examples,demo_path):
     with open(demo_path, "w", encoding="utf-8") as f:
         f.write(DEMO_prompt)
 
+def build_demo_base_desc(examples, demo_path):
+    header = textwrap.dedent("""\
+        You are a music emotion rater.
+
+        Music emotion is represented in a two-dimensional Valence–Arousal (VA) space with range [1, 9].
+
+        Valence:
+        - Reflects emotional positivity or pleasantness.
+        - Low valence (1–3): sadness, darkness, bitterness, tension.
+        - Mid valence (~5): emotional neutrality or mixed emotion.
+        - High valence (7–9): happiness, warmth, optimism, comfort.
+
+        Arousal:
+        - Reflects emotional intensity or energy.
+        - Low arousal (1–3): calm, relaxed, peaceful.
+        - Mid arousal (~5): moderate energy.
+        - High arousal (7–9): energetic, intense, excited.
+
+        You are given TWO sources of information:
+        1. Description – text generated from an audio-language model summarizing the musical mood.
+        2. Prior VA – rough numeric estimates obtained from an audio-based regression model.
+
+        NEW TASK:
+        Instead of predicting the final VA directly, predict correction deltas:
+
+            valence_delta = GroundTruth_Valence − Prior_Valence
+            arousal_delta = GroundTruth_Arousal − Prior_Arousal
+
+        Your job:
+        - Use the description to judge whether emotional positivity and energy should increase or decrease.
+        - Adjust the prior VA accordingly.
+
+        Output exactly TWO numbers in the following format:
+
+            [valence_delta, arousal_delta]
+
+        Do NOT output explanations.
+
+        Example format:
+            [-0.85, 0.72]
+    """)
+
+    blocks = []
+
+    for i, ex in enumerate(examples, 1):
+
+        pv = float(ex["prior_va"][0])
+        pa = float(ex["prior_va"][1])
+
+        gv = float(ex["gt_va"][0])
+        ga = float(ex["gt_va"][1])
+
+        delta_v = gv - pv
+        delta_a = ga - pa
+
+        desc = ex.get("descriptions", None)
+
+        if desc:
+
+            block = f"""### Example {i}
+
+Description:
+{desc.strip()}
+
+Prior Valence: {pv:.2f}
+Prior Arousal: {pa:.2f}
+
+GroundTruth Valence: {gv:.2f}
+GroundTruth Arousal: {ga:.2f}
+
+Output:
+[{delta_v:.2f}, {delta_a:.2f}]
+"""
+
+            blocks.append(block)
+
+    examples_text = "\n".join(blocks)
+
+    DEMO_prompt = header + "\n" + examples_text + "\n"
+
+    with open(demo_path, "w", encoding="utf-8") as f:
+        f.write(DEMO_prompt)
+
 #------------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -282,5 +454,7 @@ if __name__ == "__main__":
     examples = create_example(args)
     build_demo_all_v(examples, '/home/dcn2001/workspace/fatcat/ALM/VA-SEQ/TXT/DEMO_all_v.txt')
     build_demo_all_a(examples, '/home/dcn2001/workspace/fatcat/ALM/VA-SEQ/TXT/DEMO_all_a.txt')
+    build_demo_all(examples, '/home/dcn2001/workspace/fatcat/ALM/VA-SEQ/TXT/DEMO_all.txt')
     build_demo_base_desc_v(examples, '/home/dcn2001/workspace/fatcat/ALM/VA-SEQ/TXT/DEMO_base_desc_v.txt')
     build_demo_base_desc_a(examples, '/home/dcn2001/workspace/fatcat/ALM/VA-SEQ/TXT/DEMO_base_desc_a.txt')
+    build_demo_base_desc(examples, '/home/dcn2001/workspace/fatcat/ALM/VA-SEQ/TXT/DEMO_base_desc.txt')

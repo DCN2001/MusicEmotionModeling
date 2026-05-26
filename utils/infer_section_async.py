@@ -79,18 +79,22 @@ if __name__ == "__main__":
             lines = [seg["text"].strip() for seg in trans_result["segments"]]
             lyric = "\n".join(lines)
             #Build LLM prompt
-            with open("./TXT/DEMO_all.txt", "r", encoding="utf-8") as f:
+            with open("./utils/TXT/DEMO_all_v.txt", "r", encoding="utf-8") as f:
                 DEMO_v = f.read()
-            prompt = build_prompt_all(DEMO_v,base_va,lyric,desc)
+            with open("./utils/TXT/DEMO_all_a.txt", "r", encoding="utf-8") as f:
+                DEMO_a = f.read()
+            prompt_v, prompt_a = build_prompt_all_v(DEMO_v,base_va,lyric,desc), build_prompt_all_a(DEMO_a,base_va,lyric,desc)
         else:
             lyric = None
             #Build LLM prompt
-            with open("./TXT/DEMO_base_desc.txt", "r", encoding="utf-8") as f:
+            with open("./utils/TXT/DEMO_base_desc_v.txt", "r", encoding="utf-8") as f:
                 DEMO_v = f.read()
-            prompt = build_prompt_bd(DEMO_v,base_va,desc)
+            with open("./utils/TXT/DEMO_base_desc_a.txt", "r", encoding="utf-8") as f:
+                DEMO_a = f.read()
+            prompt_v, prompt_a = build_prompt_bd_v(DEMO_v,base_va,desc), build_prompt_bd_a(DEMO_a,base_va,desc)
         
         #Get LLM refined result
-        response_v, reponse_a = client.responses.create(model="gpt-5",input=prompt)
+        response_v, reponse_a = client.responses.create(model="gpt-5",input=prompt_v), client.responses.create(model="gpt-5",input=prompt_a)
         output_text_v, output_text_a = response_v.output_text, reponse_a.output_text
         #Post process
         base_v, base_a = float(base_va[0]), float(base_va[1])
@@ -201,7 +205,7 @@ if __name__ == "__main__":
     plt.tight_layout()
 
     # Save figure
-    plt.savefig(f"./plot/{song_name}.png",dpi=300,bbox_inches="tight")
+    plt.savefig(f"./plot/{song_name}_section.png",dpi=300,bbox_inches="tight")
     plt.close()
 
     #Delete Allin1 subproduct

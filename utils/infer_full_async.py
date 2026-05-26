@@ -11,7 +11,6 @@ from utils.get_desc import get_desc
 from utils.get_base_va import get_base_va
 from utils.build_prompt import *
 import os
-import re
 import numpy as np
 import librosa
 from dotenv import load_dotenv
@@ -70,22 +69,26 @@ if __name__ == "__main__":
         lines = [seg["text"].strip() for seg in trans_result["segments"]]
         lyric = "\n".join(lines)
         #Build LLM prompt
-        with open("./utils/TXT/DEMO_all.txt", "r", encoding="utf-8") as f:
-            DEMO = f.read()
-        prompt = build_prompt_all(DEMO,base_va,lyric,desc)
+        with open("./utils/TXT/DEMO_all_v.txt", "r", encoding="utf-8") as f:
+            DEMO_v = f.read()
+        with open("./utils/TXT/DEMO_all_a.txt", "r", encoding="utf-8") as f:
+            DEMO_a = f.read()
+        prompt_v, prompt_a = build_prompt_all_v(DEMO_v,base_va,lyric,desc), build_prompt_all_a(DEMO_a,base_va,lyric,desc)
     else:
         lyric = None
         #Build LLM prompt
-        with open("./utils/TXT/DEMO_base_desc.txt", "r", encoding="utf-8") as f:
-            DEMO = f.read()
-        prompt = build_prompt_bd(DEMO,base_va,desc)
+        with open("./utils/TXT/DEMO_base_desc_v.txt", "r", encoding="utf-8") as f:
+            DEMO_v = f.read()
+        with open("./utils/TXT/DEMO_base_desc_a.txt", "r", encoding="utf-8") as f:
+            DEMO_a = f.read()
+        prompt_v, prompt_a = build_prompt_bd_v(DEMO_v,base_va,desc), build_prompt_bd_a(DEMO_a,base_va,desc)
+    
     #Get LLM refined result
-    response = client.responses.create(model="gpt-5",input=prompt)
-    output_text = response.output_text.strip()
-    nums = re.findall(r"-?\d+(?:\.\d+)?", output_text)
+    response_v, reponse_a = client.responses.create(model="gpt-5",input=prompt_v), client.responses.create(model="gpt-5",input=prompt_a)
+    output_text_v, output_text_a = response_v.output_text, reponse_a.output_text
     #Post process
     base_v, base_a = float(base_va[0]), float(base_va[1])
-    delta_v, delta_a = float(nums[0]), float(nums[1])
+    delta_v, delta_a = float(output_text_v.strip()), float(output_text_a.strip())
     adj_v = base_v + delta_v
     adj_a = base_a + delta_a
     #Final output
