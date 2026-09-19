@@ -131,7 +131,7 @@ The figures compare the distributions of Ground Truth, Base Prediction, and ICL 
   <tr>
     <td align="center">
       <b>Ground Truth</b><br>
-      <img src="./plot/MER60_gt.png" width="70%">
+      <img src="./plot/MER60_gt_v1.png" width="70%">
     </td>
     <td align="center">
       <b>Base Prediction</b><br>
