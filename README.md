@@ -89,7 +89,7 @@ Blue lines indicate valence and red dashed lines indicate arousal across differe
 The following examples illustrate how the LLM refines the base VA predictions. Each figure shows the resulting change in the VA space, followed by the rationale provided by the LLM.
 #### Example.1: [Louis Armstrong - What a wonderful world](https://youtu.be/rBrd_3VMC3c?si=JEknikrWfWKlrXgF)
 <div align="center">
-<img src="./plot/LLM_refined_ID_24.png" width="70%">
+<img src="./plot/LLM_refined_ID_24.png" width="50%">
 </div>
 
 Reason given by LLM:
@@ -102,7 +102,7 @@ Reason given by LLM:
 
 #### Example.2: [Billie Holiday - Gloomy Sunday](https://youtu.be/XQ2AuLaClmk?si=gUwBc7p8btVi0cg-)
 <div align="center">
-<img src="./plot/LLM_refined_ID_38.png" width="70%"> 
+<img src="./plot/LLM_refined_ID_38.png" width="50%"> 
 </div>
 
 Reason given by LLM:
@@ -114,7 +114,7 @@ Reason given by LLM:
 
 #### Example.3: [Roy Orbison - Pretty Woman](https://youtu.be/3KFvoDDs0XM?si=0cqRLAY9J3Ia4OD1)
 <div align="center">
-<img src="./plot/LLM_refined_ID_15.png" width="70%"> 
+<img src="./plot/LLM_refined_ID_15.png" width="50%"> 
 </div>
 
 Reason given by LLM:
