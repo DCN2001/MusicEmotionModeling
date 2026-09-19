@@ -83,3 +83,80 @@ This pipeline:
 <img src="./plot/section_VA_example.png" width="70%">
 
 Blue lines indicate valence and red dashed lines indicate arousal across different music sections.
+
+## Supplmentary
+### Examples of refinement and reasoning
+The following examples illustrate how the LLM refines the base VA predictions. Each figure shows the resulting change in the VA space, followed by the rationale provided by the LLM.
+#### Example.1: [Louis Armstrong - What a wonderful world](https://youtu.be/rBrd_3VMC3c?si=JEknikrWfWKlrXgF)
+<div align="center">
+<img src="./plot/LLM_refined_ID_24.png" width="70%">
+</div>
+
+Reason given by LLM:
+- The lyrics are overtly positive and tender, celebrating beauty and gratitude (“what a wonderful world,” trees of green, skies of blue), which strongly suggests high valence.
+
+- However, the description portrays a slow country ballad with a melancholic, regretful tone, which tempers the positivity. 
+
+- Given these conflicting cues, the prior at 3.27 should be nudged upward to reflect the affirmative lyrical content, but only moderately due to the sad musical delivery.
+
+
+#### Example.2: [Billie Holiday - Gloomy Sunday](https://youtu.be/XQ2AuLaClmk?si=gUwBc7p8btVi0cg-)
+<div align="center">
+<img src="./plot/LLM_refined_ID_38.png" width="70%"> 
+</div>
+
+Reason given by LLM:
+- The lyrics depict profound grief and death imagery (“shadows … numberless,” “flowers will never awaken you,” “black coach of sorrow”), strongly signaling very low valence. 
+
+- The description reinforces this with slow tempo, dark minor tonality, and themes of sorrow, loss, and melancholy. 
+
+- Since both sources point to a darker mood than the already-low prior, the valence should be moved further down.
+
+#### Example.3: [Roy Orbison - Pretty Woman](https://youtu.be/3KFvoDDs0XM?si=0cqRLAY9J3Ia4OD1)
+<div align="center">
+<img src="./plot/LLM_refined_ID_15.png" width="70%"> 
+</div>
+
+Reason given by LLM:
+- The lyrics center on admiration and flirtation toward a “pretty woman,” with lines like “No one could look as good as you,” conveying warmth and positivity. 
+
+- The description reinforces an upbeat, feel-good mood with fast tempo, energetic instrumentation, and happy emotion. 
+
+- The description reinforces an upbeat, feel-good mood with fast tempo, energetic instrumentation, and happy emotion. 
+
+### Data distribution
+The figures compare the distributions of Ground Truth, Base Prediction, and ICL Prediction from left to right, illustrating the effect of ICL refinement on the prediction distribution.
+
+<table>
+  <tr>
+    <td align="center">
+      <b>Ground Truth</b><br>
+      <img src="./plot/MER60_gt.png" width="70%">
+    </td>
+    <td align="center">
+      <b>Base Prediction</b><br>
+      <img src="./plot/Base_distribute.png" width="70%">
+    </td>
+    <td align="center">
+      <b>ICL Prediction</b><br>
+      <img src="./plot/ICL_distribute.png" width="70%">
+    </td>
+  </tr>
+</table>
+
+### Inference results on external data
+The following examples show inference results on songs outside the MER60 dataset. Each song is segmented into sections using All-in-One, with VA predictions generated separately for each section. Thus, the results represent section-wise VA predictions rather than a single VA value for the entire song.
+#### Example.1: [Ludwig Göransson - Can You Hear The Music](https://youtu.be/4JZ-o3iAJv4?si=llIG00xTQi8Qd5Pi)
+<div align="center">
+<img src="./plot/Can You Hear The Music.png" width="70%">
+</div>
+
+#### Example.2: [ZAYN & Sia - Dusk Till Dawn](https://youtu.be/p-eS-_olx9M?si=gh3eETa2iQPuE-Xj)
+<div align="center">
+<img src="./plot/Dusk Till Dawn.png" width="70%">
+</div>
+
+#### Example.3: [JVKE - Golden Hour](https://youtu.be/PEM0Vs8jf1w?si=gwgewAPNbwNMw10J)
+<div align="center">
+<img src="./plot/golden hour.png" width="70%">
+</div>
